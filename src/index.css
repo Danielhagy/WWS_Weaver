@@ -83,3 +83,90 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Pattern Builder Animations */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes thread-flow {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+}
+
+@keyframes golden-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(43, 183, 169, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(43, 183, 169, 0.6), 0 0 30px rgba(43, 183, 169, 0.3);
+  }
+}
+
+@keyframes needle-stitch {
+  0% {
+    stroke-dashoffset: 1000;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.golden-thread {
+  position: relative;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(43, 183, 169, 0.4) 25%,
+    rgba(43, 183, 169, 0.6) 50%,
+    rgba(43, 183, 169, 0.4) 75%,
+    transparent 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 3s linear infinite;
+}
+
+.golden-thread-connected {
+  animation: golden-glow 2s ease-in-out infinite;
+}
+
+.thread-particle {
+  animation: thread-flow 2s ease-in-out infinite;
+}
+
+/* Smooth transitions for step blocks */
+.step-block-enter {
+  opacity: 0;
+  transform: scale(0.9) translateY(-20px);
+}
+
+.step-block-enter-active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition: all 0.3s ease-out;
+}
+
+.step-block-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.step-block-exit-active {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 0.2s ease-in;
+}

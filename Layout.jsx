@@ -36,6 +36,11 @@ const navigationItems = [
     icon: Plus,
   },
   {
+    title: "Pattern Builder",
+    url: createPageUrl("PatternBuilder"),
+    icon: Workflow,
+  },
+  {
     title: "Run History",
     url: createPageUrl("RunHistory"),
     icon: History,

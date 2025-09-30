@@ -7,6 +7,7 @@ import CreateIntegration from '../Pages/CreateIntegration.jsx'
 import IntegrationDetails from '../Pages/IntegrationDetails.jsx'
 import RunHistory from '../Pages/RunHistory.jsx'
 import Credentials from '../Pages/Credentials.jsx'
+import PatternBuilder from '../Pages/PatternBuilder.jsx'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/" element={<Navigate to="/Dashboard" replace />} />
           <Route path="/Dashboard" element={<Layout><Dashboard /></Layout>} />
           <Route path="/CreateIntegration" element={<Layout><CreateIntegration /></Layout>} />
+          <Route path="/PatternBuilder" element={<Layout><PatternBuilder /></Layout>} />
           <Route path="/IntegrationDetails" element={<Layout><IntegrationDetails /></Layout>} />
           <Route path="/RunHistory" element={<Layout><RunHistory /></Layout>} />
           <Route path="/Credentials" element={<Layout><Credentials /></Layout>} />
