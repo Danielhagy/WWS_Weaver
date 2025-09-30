@@ -12,10 +12,11 @@ export default function PatternBuilder() {
   const [patternName, setPatternName] = useState('')
   const [patternDescription, setPatternDescription] = useState('')
   const [steps, setSteps] = useState([])
+  const [webhookConfig, setWebhookConfig] = useState(null)
 
   const handleSavePattern = () => {
     // TODO: Implement save functionality in future milestones
-    console.log('Saving pattern:', { patternName, patternDescription, steps })
+    console.log('Saving pattern:', { patternName, patternDescription, steps, webhookConfig })
   }
 
   return (
@@ -77,7 +78,12 @@ export default function PatternBuilder() {
       </Card>
 
       {/* Stitching Canvas */}
-      <StitchingCanvas steps={steps} setSteps={setSteps} />
+      <StitchingCanvas
+        steps={steps}
+        setSteps={setSteps}
+        webhookConfig={webhookConfig}
+        setWebhookConfig={setWebhookConfig}
+      />
     </div>
   )
 }

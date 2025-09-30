@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 
-export default function DataMappingInterface({ step, previousSteps, onMappingChange }) {
+export default function DataMappingInterface({ step, previousSteps, onMappingChange, webhookConfig }) {
   const [mappings, setMappings] = useState(step.mappings || [])
 
   // Mock target fields for the selected web service
@@ -21,8 +21,8 @@ export default function DataMappingInterface({ step, previousSteps, onMappingCha
     'Manager_ID'
   ]
 
-  // Mock webhook source columns
-  const mockWebhookColumns = [
+  // Get webhook source columns from configuration or use mock data
+  const webhookColumns = webhookConfig?.columns || webhookConfig?.attributes || [
     'employee_id',
     'first_name',
     'last_name',
@@ -76,11 +76,16 @@ export default function DataMappingInterface({ step, previousSteps, onMappingCha
               Webhook Source
             </span>
             <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-none text-xs">
-              {mockWebhookColumns.length} columns
+              {webhookColumns.length} {webhookConfig?.type === 'file' ? 'columns' : 'attributes'}
             </Badge>
+            {webhookConfig?.type && (
+              <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-none text-xs">
+                {webhookConfig.type === 'file' ? 'File' : 'JSON'}
+              </Badge>
+            )}
           </div>
           <div className="flex flex-wrap gap-1.5 ml-8">
-            {mockWebhookColumns.map((col) => (
+            {webhookColumns.map((col) => (
               <Badge
                 key={col}
                 variant="outline"
@@ -237,7 +242,7 @@ export default function DataMappingInterface({ step, previousSteps, onMappingCha
                           <SelectValue placeholder="Select webhook column..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {mockWebhookColumns.map((col) => (
+                          {webhookColumns.map((col) => (
                             <SelectItem key={col} value={col} className="text-xs">
                               {col}
                             </SelectItem>

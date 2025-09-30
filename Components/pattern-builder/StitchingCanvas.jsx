@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button'
 import StepBlock from './StepBlock'
 import StepConfigPanel from './StepConfigPanel'
 import TriggerBlock from './TriggerBlock'
+import WebhookConfigPanel from './WebhookConfigPanel'
 
-export default function StitchingCanvas({ steps, setSteps }) {
+export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWebhookConfig }) {
   const [selectedStepId, setSelectedStepId] = useState(null)
   const [configPanelOpen, setConfigPanelOpen] = useState(false)
+  const [webhookConfigOpen, setWebhookConfigOpen] = useState(false)
 
   const handleAddStep = () => {
     const newStep = {
@@ -92,7 +94,10 @@ export default function StitchingCanvas({ steps, setSteps }) {
             {/* Workflow Blocks */}
             <div className="space-y-8">
               {/* Trigger Block */}
-              <TriggerBlock />
+              <TriggerBlock
+                webhookConfig={webhookConfig}
+                onClick={() => setWebhookConfigOpen(true)}
+              />
 
               {/* Connection Line */}
               {steps.length > 0 && (
@@ -160,9 +165,18 @@ export default function StitchingCanvas({ steps, setSteps }) {
             onClose={handleConfigClose}
             onUpdate={handleUpdateStep}
             previousSteps={selectedStep ? steps.slice(0, steps.findIndex(s => s.id === selectedStep.id)) : []}
+            webhookConfig={webhookConfig}
           />
         </div>
       </div>
+
+      {/* Webhook Configuration Modal */}
+      <WebhookConfigPanel
+        webhookConfig={webhookConfig}
+        isOpen={webhookConfigOpen}
+        onClose={() => setWebhookConfigOpen(false)}
+        onUpdate={setWebhookConfig}
+      />
     </div>
   )
 }

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import DataMappingInterface from './DataMappingInterface'
 
-export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previousSteps }) {
+export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previousSteps, webhookConfig }) {
   const [localStep, setLocalStep] = useState(step || {})
 
   React.useEffect(() => {
@@ -139,6 +139,7 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
               step={localStep}
               previousSteps={previousSteps}
               onMappingChange={(mappings) => handleFieldChange('mappings', mappings)}
+              webhookConfig={webhookConfig}
             />
           </div>
         )}
