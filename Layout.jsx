@@ -53,83 +53,43 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-700 via-slate-600 to-slate-800">
-        <Sidebar className="border border-gray-300/50 bg-gray-50 rounded-2xl overflow-hidden m-4 mr-0 h-[calc(100vh-2rem)]" style={{ boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1125), 0 4px 20px rgba(0, 0, 0, 0.075), inset 0 1px 0 rgba(255, 255, 255, 0.6)' }}>
-          <SidebarHeader className="border-b border-gray-200 p-4 bg-white">
-            <div className="flex items-center justify-start gap-2 max-w-full">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-soft-gray via-white to-soft-gray/50">
+        <Sidebar className="bg-primary-dark-blue border-none fixed left-0 top-0 h-screen w-72 flex flex-col z-50 overflow-hidden" style={{ boxShadow: '8px 0 24px rgba(0, 0, 0, 0.15), 4px 0 8px rgba(0, 0, 0, 0.1), inset -1px 0 0 rgba(255, 255, 255, 0.05)', position: 'fixed', left: 0, top: 0, height: '100vh', width: '288px' }}>
+          <SidebarHeader className="p-6 pb-8 flex-shrink-0">
+            <div className="flex items-center justify-center">
               <img
-                src="/Assets/BrandLogo.png"
-                alt="Workday Weaver Logo"
-                className="h-15 w-auto object-contain flex-shrink-0"
-                style={{ height: '3.75rem' }}
-              />
-              <img
-                src="/Assets/BrandNameV2.png"
-                alt="Workday Weaver"
-                className="h-12 w-auto object-contain flex-shrink-0"
+                src="/Assets/StitchLogo.svg"
+                alt="Stitch"
+                className="h-16 w-auto"
+                style={{ filter: 'brightness(0) invert(1)' }}
               />
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="px-4 pt-6 pb-4 flex-1">
+          <SidebarContent className="flex-1 overflow-y-hidden overflow-x-hidden">
             <SidebarGroup>
               <SidebarGroupContent>
-                <SidebarMenu>
+                <SidebarMenu className="space-y-2 px-3">
                   {navigationItems.map((item) => {
                     const isActive = location.pathname === item.url;
-                    const isHovered = hoveredItem === item.title;
 
                     return (
                       <SidebarMenuItem key={item.title}>
                         <Link
                           to={item.url}
                           className={`
-                            flex items-center gap-3 px-2 py-3 relative
-                            rounded-xl mb-2 overflow-hidden
-                            transition-all duration-300 ease-out
-                            text-gray-700 border border-transparent
+                            flex items-center gap-4 py-4 relative
+                            rounded-lg transition-all duration-200
                             ${isActive
-                              ? 'bg-green-400/30 shadow-lg shadow-green-400/50 scale-[1.02] font-semibold text-slate-900 border-green-400/40'
-                              : 'hover:bg-gray-200'
-                            }
-                            ${isHovered && !isActive
-                              ? 'bg-green-100 text-green-700 translate-x-1 border-green-300'
-                              : ''
+                              ? 'bg-accent-teal text-white font-semibold shadow-lg -mx-3 px-6'
+                              : 'text-white hover:bg-[#142d45] hover:text-white px-3'
                             }
                           `}
-                          style={{
-                            boxShadow: isActive ? '0 0 15px rgba(74, 222, 128, 0.3), 0 0 25px rgba(74, 222, 128, 0.15)' : ''
-                          }}
-                          onMouseEnter={() => setHoveredItem(item.title)}
-                          onMouseLeave={() => setHoveredItem(null)}
                         >
-                          <item.icon
-                            className={`
-                              w-5 h-5 transition-all duration-300
-                              ${isActive ? 'scale-110 text-green-600' : 'text-gray-600'}
-                              ${isHovered && !isActive ? 'scale-105 rotate-3 text-green-600' : ''}
-                            `}
-                          />
-                          <span className={`
-                            font-medium transition-all duration-300
-                            ${isActive ? 'tracking-wide' : ''}
-                            ${isHovered && !isActive ? 'tracking-wide' : ''}
-                          `}>
+                          <item.icon className="w-6 h-6 flex-shrink-0" />
+                          <span className="text-base font-medium">
                             {item.title}
                           </span>
-
-                          {/* Animated border effect */}
-                          {(isHovered || isActive) && (
-                            <div
-                              className={`
-                                absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-green-400 to-cyan-400
-                                ${isActive ? 'opacity-100 w-1.5' : 'opacity-70'}
-                              `}
-                              style={{
-                                animation: isHovered && !isActive ? 'slideDown 0.3s ease-out' : 'none'
-                              }}
-                            />
-                          )}
                         </Link>
                       </SidebarMenuItem>
                     );
@@ -139,48 +99,35 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <style jsx>{`
-            @keyframes slideDown {
-              from {
-                transform: translateY(-100%);
-              }
-              to {
-                transform: translateY(0);
-              }
-            }
-          `}</style>
+          <SidebarFooter className="p-4 border-t border-white/10 flex-shrink-0">
+            <div className="flex items-center gap-3 px-3 py-3 rounded-lg bg-[#0f2537] hover:bg-[#142d45] transition-colors">
+              <div className="w-10 h-10 bg-accent-teal rounded-lg flex items-center justify-center flex-shrink-0 shadow-md">
+                <span className="text-white font-bold text-sm">HR</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-accent-teal text-sm font-semibold truncate">HR Administrator</p>
+                <p className="text-accent-teal text-xs truncate font-medium">Integration Manager</p>
+              </div>
+            </div>
+          </SidebarFooter>
         </Sidebar>
 
-        {/* Fixed User Info at Bottom Left */}
-        <div
-          className="fixed z-50 bg-white border-2 border-gray-300 rounded-lg shadow-xl p-3 max-w-xs"
-          style={{ bottom: '1.5rem', left: '1.5rem' }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 min-w-[2.25rem] min-h-[2.25rem] bg-gradient-to-br from-cyan-500 to-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-semibold text-sm">HR</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-gray-800 text-sm truncate">HR Administrator</p>
-              <p className="text-xs text-gray-600 truncate">Integration Manager</p>
-            </div>
-          </div>
-        </div>
-
-        <main className="flex-1 flex flex-col">
-          <header className="bg-slate-800/95 backdrop-blur-sm border-b border-cyan-500/20 px-6 py-4 md:hidden shadow-sm sticky top-0 z-30">
+        <main className="flex-1 flex flex-col bg-soft-gray/30" style={{ marginLeft: '288px' }}>
+          <header className="bg-white border-b border-soft-gray px-6 py-4 md:hidden shadow-sm sticky top-0 z-30">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="hover:bg-cyan-500/10 p-2 rounded-lg transition-colors duration-200 text-gray-300" />
+              <SidebarTrigger className="hover:bg-soft-gray p-2 rounded-lg transition-colors duration-200 text-primary-dark-blue" />
               <img
-                src="/Assets/BrandName.png"
-                alt="Workday Weaver"
-                className="h-8 w-auto object-contain"
+                src="/Assets/StitchLogo.svg"
+                alt="Stitch"
+                className="h-8 w-auto"
               />
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto">
-            {children}
+          <div className="flex-1 overflow-y-auto">
+            <div className="max-w-[1600px] mx-auto px-8 py-8">
+              {children}
+            </div>
           </div>
         </main>
       </div>

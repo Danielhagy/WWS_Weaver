@@ -1,0 +1,40 @@
+4. Color Schemes
+
+We'll aim for a palette that feels professional, trustworthy, and modern, with an accent that implies precision and connection.
+Primary Color Scheme: "Precision & Connection"
+* Primary Dark Blue (Dominant):
+    * Hex: #1A3B5D (A rich, deep blue, slightly less cold than pure navy)
+    * RGB: (26, 59, 93)
+    * CMYK: (72, 36, 0, 63)
+    * Use: Headings, main navigation, important background elements, primary button fills.
+    * Feeling: Trust, Reliability, Professionalism, Depth, Authority.
+* Accent Teal/Green (Dynamic Link):
+    * Hex: #2BB7A9 (A vibrant, refreshing teal-green, symbolizing connection and growth)
+    * RGB: (43, 183, 169)
+    * CMYK: (76, 0, 8, 28)
+    * Use: Call-to-action buttons, interactive elements, highlights, data visualization, progress indicators, icons.
+    * Feeling: Innovation, Seamlessness, Efficiency, Clarity, Freshness.
+* Soft Gray (Supporting Neutral):
+    * Hex: #D9E2EB (A very light, cool gray for balance and cleanliness)
+    * RGB: (217, 226, 235)
+    * CMYK: (8, 4, 0, 8)
+    * Use: Backgrounds for content sections, subtle borders, inactive states.
+    * Feeling: Modernity, Cleanliness, Subtlety, Openness.
+* Text & Backgrounds:
+    * Main Text: Dark Charcoal (#3C4858) for readability on light backgrounds.
+    * White: #FFFFFF for main page backgrounds and text on dark backgrounds.
+Secondary Color Scheme: "Data Harmony" (For Dashboards, Charts, Secondary Branding)
+* This scheme adds warmth and distinction for data elements.
+* Muted Orange: #F89D42 (For alerts, specific data categories)
+* Medium Gray-Blue: #6A8BAE (For secondary data lines, supporting elements)
+* Soft Yellow-Green: #C2E28B (For positive trends, alternative data sets)
+
+
+5. Web Application UI/UX Considerations
+
+* Dashboard Layout: Clean, organized cards and sections, emphasizing data clarity.
+* Typography: Stick to chosen fonts, ensuring excellent readability.
+* Iconography: Line-based, minimalist icons. The accent teal-green can be used for active or interactive icons.
+* Data Visualization: Charts should be clean, using the secondary color palette intelligently to differentiate data points without being overwhelming.
+* User Feedback: A clear use of color for success (accent teal-green), warning (muted orange), and error messages (a complementary red like #D9534F).
+* Transitions & Animations: Subtle, smooth animations that mimic seamlessness, like elements "stitching" together or flowing.

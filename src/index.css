@@ -4,48 +4,74 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    /* Primary Dark Blue - Trust & Professionalism */
+    --primary-dark-blue: 210 45% 23%;        /* #1A3B5D */
+    --primary-dark-blue-rgb: 26 59 93;
+
+    /* Accent Teal/Green - Innovation & Connection */
+    --accent-teal: 174 62% 44%;              /* #2BB7A9 */
+    --accent-teal-rgb: 43 183 169;
+
+    /* Soft Gray - Supporting Neutral */
+    --soft-gray: 210 30% 89%;                /* #D9E2EB */
+    --soft-gray-rgb: 217 226 235;
+
+    /* Text & Main Colors */
+    --text-dark: 216 22% 29%;                /* #3C4858 */
+    --text-dark-rgb: 60 72 88;
+
+    /* Secondary Colors - Data Harmony */
+    --muted-orange: 29 93% 61%;              /* #F89D42 */
+    --medium-gray-blue: 211 30% 55%;         /* #6A8BAE */
+    --soft-yellow-green: 84 58% 75%;         /* #C2E28B */
+
+    /* Standard whites and errors */
+    --white: 0 0% 100%;
+    --error-red: 354 70% 54%;                /* #D9534F */
+
+    /* Mapped to shadcn variables */
+    --background: var(--white);
+    --foreground: var(--text-dark);
+    --card: var(--white);
+    --card-foreground: var(--text-dark);
+    --popover: var(--white);
+    --popover-foreground: var(--text-dark);
+    --primary: var(--primary-dark-blue);
+    --primary-foreground: var(--white);
+    --secondary: var(--soft-gray);
+    --secondary-foreground: var(--text-dark);
+    --muted: var(--soft-gray);
+    --muted-foreground: var(--medium-gray-blue);
+    --accent: var(--accent-teal);
+    --accent-foreground: var(--white);
+    --destructive: var(--error-red);
+    --destructive-foreground: var(--white);
+    --border: 210 30% 85%;
+    --input: 210 30% 85%;
+    --ring: var(--accent-teal);
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --background: var(--primary-dark-blue);
+    --foreground: var(--white);
+    --card: 210 45% 18%;
+    --card-foreground: var(--white);
+    --popover: 210 45% 18%;
+    --popover-foreground: var(--white);
+    --primary: var(--accent-teal);
+    --primary-foreground: var(--primary-dark-blue);
+    --secondary: 210 45% 28%;
+    --secondary-foreground: var(--white);
+    --muted: 210 45% 28%;
+    --muted-foreground: var(--medium-gray-blue);
+    --accent: var(--accent-teal);
+    --accent-foreground: var(--white);
+    --destructive: var(--error-red);
+    --destructive-foreground: var(--white);
+    --border: 210 45% 28%;
+    --input: 210 45% 28%;
+    --ring: var(--accent-teal);
   }
 }
 

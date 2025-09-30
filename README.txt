@@ -1,5 +1,5 @@
 Project Prompt for AI Assistant: Low-Code Workday Integration Platform
-Project Title: Workday Integration Weaver
+Project Title: Stitch ERP
 
 Overall Goal: Build a secure, multi-tenant web application that allows non-technical users (like HR personnel) to create, manage, and execute inbound integrations for Workday. The platform will provide a user-friendly, low-code/no-code interface to map data from an uploaded file (e.g., CSV) to a selected Workday SOAP web service, apply data transformations, and generate the necessary requests.
 

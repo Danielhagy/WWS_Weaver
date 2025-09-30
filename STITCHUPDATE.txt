@@ -1,0 +1,110 @@
+Based on the application "STITCH," develop its core feature: Integration Stitching. This will allow users to chain multiple web service operations together into a single, ordered workflow, triggered by one webhook. The key requirement is that data returned from an earlier Step in the sequence can be dynamically used as input for a later Step.
+
+The primary goal is to create a highly visual, intuitive, and engaging low-code/no-code experience that makes our non-technical HR user persona feel empowered.
+
+Core Concept: Integration Stitching 🔗
+An Integration Stitch is a sequence of individual integration operations, which we'll call "Steps."
+
+Execution Order: The user defines the precise order in which the Steps execute.
+
+Data Flow: Each Step executes and receives a response from Workday. The data from this response (e.g., a newly created Position_ID) becomes available as a data source for all subsequent Steps in the sequence. This passed data is the "Golden Thread."
+
+Single Endpoint: The entire multi-step sequence is saved as a single, cohesive "Pattern" and is triggered by one unique webhook endpoint.
+
+Use Case Example: A user wants to create a new position and immediately hire a contingent worker into it.
+
+Step 1: Executes the Create_Position web service. The response from Workday contains the unique Position_ID.
+
+Step 2: Executes the Contract_Contingent_Worker web service. The user maps the Position_ID (the "Golden Thread" from Step 1) directly to the required Position_ID input field for this second operation.
+
+UI/UX Approach: The Stitching Canvas 🎨
+To make this process simple, we will use a visual canvas interface for building Patterns.
+
+Visual Flow: The user will build their Pattern on a canvas by adding and connecting blocks. Each block represents a "Step" (a single web service call).
+
+Adding Steps: The user starts with an initial "Trigger" block representing the webhook input file. They can then click a + icon to add a new Step to the sequence.
+
+Configuration Panel: Clicking on a Step block opens a configuration panel where the user selects the Workday Web Service and performs the mapping for that specific operation.
+
+Dynamic Data Mapping: This is the most critical part of the UI. When configuring a Step (e.g., Step 2), the mapping interface must show two categories of data sources the user can map from:
+
+Webhook Source: Columns from the originally uploaded file.
+
+Golden Threads from Previous Steps: A new section dynamically populated with the potential response fields from all preceding Steps (e.g., "Outputs from Step 1: Create Position").
+
+Isolated Testing: Every Step block on the canvas must have its own "Test this Step" button. This allows the user to test each part of their Pattern individually to see exactly what data Workday will return. The results of a successful test are then used to populate the "Golden Threads" section for subsequent Steps, giving the user a real-world schema to map from.
+
+Gamification Elements ✨
+To make the experience fun and rewarding, incorporate the following thematic elements:
+
+Thematic Language: Fully embrace the "STITCH" brand. A multi-step integration is a "Pattern." An individual operation is a "Step" or a "Stitch." Data passed between steps is a "Golden Thread."
+
+Visual Feedback: Use smooth animations showing a needle and thread connecting the Step blocks on the canvas. When a user successfully maps a "Golden Thread," make the connection line shimmer or briefly change color.
+
+Progress Rewards: Award simple badges that appear in the user's profile for mastering the platform:
+
+First Pattern: For creating their first multi-step integration.
+
+Master Stitcher: For successfully using a "Golden Thread" for the first time.
+
+Complex Pattern: For creating a Pattern with three or more Steps.
+
+Key Technical Requirements
+Pattern Configuration Storage: The database schema must store Patterns. This will likely involve a parent Patterns table and a child Steps table that stores the configuration for each operation and its order (execution_order).
+
+Data Context Object: During a live webhook execution, the backend must maintain a "context object." This object will initially hold data from the input file. As each Step executes, its entire response from Workday will be merged into the context object, making the "Golden Threads" available for the next Step's mappings.
+
+Step-Aware Execution Engine: The backend service that runs integrations must be updated to handle Patterns. It needs to query for all Steps in a Pattern, execute them in order, and pass the evolving data context object between them.
+
+Scoped Testing Service: The "Test this Step" feature requires a dedicated backend service. This service must be able to execute a single Step's configuration and return the exact response structure from Workday so the frontend can display the available "Golden Thread" fields.
+
+Enhanced Logging: Logs for Patterns must be grouped by the master execution. The UI should clearly show the log for the entire Pattern, with the ability to drill down into the logs for each individual Step within that run.
+
+Suggested Development Milestones
+Milestone 1: UI/UX Foundation for the Stitching Canvas
+
+Objective: Build the non-functional frontend for the Pattern builder.
+
+Tasks:
+
+Create the canvas interface where users can add, arrange, and connect placeholder "Step" blocks.
+
+Develop the modal or side-panel UI for configuring a single Step.
+
+In the mapping UI, add the static visual separation for "Webhook Source" and "Golden Threads from Previous Steps."
+
+Milestone 2: Backend for Isolated Step Testing
+
+Objective: Enable the testing of a single Step to discover its response fields.
+
+Tasks:
+
+Build the backend endpoint and logic for the "Test this Step" feature.
+
+Connect the frontend test button to this endpoint.
+
+Dynamically render the returned fields in the "Golden Threads" source section in the UI.
+
+Milestone 3: The Data Bridge & Pattern Persistence
+
+Objective: Allow data to be mapped between Steps and save the complete Pattern.
+
+Tasks:
+
+Implement the frontend logic to make the output fields from one Step's test mappable to the input fields of the next Step.
+
+Update the database schema to support Patterns and their ordered Steps.
+
+Implement the "Save Pattern" functionality that persists the entire multi-step configuration.
+
+Milestone 4: Full End-to-End Pattern Execution & Logging
+
+Objective: Make the single webhook trigger the entire ordered chain of Steps.
+
+Tasks:
+
+Develop the main Execution Engine on the backend that processes a webhook for a saved Pattern.
+
+Implement the "Data Context Object" logic to pass "Golden Threads" between live steps.
+
+Enhance the Logs table and UI to support grouped logging for Pattern executions.

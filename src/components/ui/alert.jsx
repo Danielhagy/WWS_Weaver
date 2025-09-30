@@ -3,10 +3,11 @@ import { cn } from "@/lib/utils"
 
 const Alert = React.forwardRef(({ className, variant = "default", ...props }, ref) => {
   const variants = {
-    default: "bg-white border-gray-200",
-    destructive: "bg-red-50 border-red-200 text-red-900",
-    warning: "bg-yellow-50 border-yellow-200 text-yellow-900",
-    info: "bg-blue-50 border-blue-200 text-blue-900",
+    default: "bg-white border-soft-gray text-text-dark",
+    destructive: "bg-error-red/10 border-error-red/30 text-error-red",
+    warning: "bg-muted-orange/10 border-muted-orange/30 text-muted-orange",
+    info: "bg-accent-teal/10 border-accent-teal/30 text-accent-teal",
+    success: "bg-soft-yellow-green/30 border-soft-yellow-green/50 text-primary-dark-blue",
   }
 
   return (
@@ -14,7 +15,7 @@ const Alert = React.forwardRef(({ className, variant = "default", ...props }, re
       ref={ref}
       role="alert"
       className={cn(
-        "relative w-full rounded-lg border p-4",
+        "relative w-full rounded-lg border p-4 shadow-sm",
         variants[variant],
         className
       )}

@@ -5,7 +5,7 @@ test.describe('Dashboard Page', () => {
     await page.goto('/Dashboard');
     
     // Check page title
-    await expect(page.locator('h1:has-text("Integration Dashboard")')).toBeVisible();
+    await expect(page.locator('h1:has-text("Overview Dashboard")')).toBeVisible();
     
     // Check that integrations are displayed
     await expect(page.locator('text=New Hire Personal Info').first()).toBeVisible();
