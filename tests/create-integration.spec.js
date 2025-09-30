@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Create Integration Wizard', () => {
+test.describe('Create Stitch Wizard', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/CreateIntegration');
   });
 
   test('should display step 1 configuration form', async ({ page }) => {
     // Check page title
-    await expect(page.locator('h1:has-text("Create New Integration")')).toBeVisible();
+    await expect(page.locator('h1:has-text("Create New Stitch")')).toBeVisible();
 
     // Check step indicator shows Configuration (use heading to avoid strict mode)
     await expect(page.locator('h2:has-text("Configuration")')).toBeVisible();

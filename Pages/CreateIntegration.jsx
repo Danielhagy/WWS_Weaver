@@ -106,7 +106,7 @@ export default function CreateIntegration() {
       <div className="bg-white rounded-2xl p-6 border border-soft-gray shadow-md">
         <div>
           <h1 className="text-3xl font-bold text-primary-dark-blue">
-            {isEditMode ? "Edit Integration" : "Create New Integration"}
+            {isEditMode ? "Edit Stitch" : "Create New Stitch"}
           </h1>
           <p className="text-medium-gray-blue mt-1">
             {isEditMode ? "Update your Workday integration" : "Build your Workday integration step by step"}

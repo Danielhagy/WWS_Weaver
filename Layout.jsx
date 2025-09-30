@@ -31,7 +31,7 @@ const navigationItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Create Integration",
+    title: "Create Stitch",
     url: createPageUrl("CreateIntegration"),
     icon: Plus,
   },

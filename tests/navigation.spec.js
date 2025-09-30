@@ -10,7 +10,7 @@ test.describe('Navigation and Sidebar', () => {
 
     // Check navigation items (use link selectors)
     await expect(page.locator('a').filter({ hasText: /^Dashboard$/ }).first()).toBeVisible();
-    await expect(page.locator('a').filter({ hasText: 'Create Integration' })).toBeVisible();
+    await expect(page.locator('a').filter({ hasText: 'Create Stitch' })).toBeVisible();
     await expect(page.locator('a').filter({ hasText: /^Run History$/ }).first()).toBeVisible();
     await expect(page.locator('a').filter({ hasText: /^Credentials$/ }).first()).toBeVisible();
   });
