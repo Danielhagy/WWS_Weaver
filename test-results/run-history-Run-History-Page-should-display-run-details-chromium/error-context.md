@@ -1,0 +1,154 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e6]:
+      - img [ref=e8]
+      - generic [ref=e12]:
+        - heading "Workday Weaver" [level=2] [ref=e13]
+        - paragraph [ref=e14]: Integration Platform
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]: Navigation
+        - navigation [ref=e19]:
+          - link "Dashboard" [ref=e21] [cursor=pointer]:
+            - /url: /Dashboard
+            - img [ref=e22] [cursor=pointer]
+            - generic [ref=e27] [cursor=pointer]: Dashboard
+          - link "Create Integration" [ref=e29] [cursor=pointer]:
+            - /url: /CreateIntegration
+            - img [ref=e30] [cursor=pointer]
+            - generic [ref=e31] [cursor=pointer]: Create Integration
+          - link "Run History" [ref=e33] [cursor=pointer]:
+            - /url: /RunHistory
+            - img [ref=e34] [cursor=pointer]
+            - generic [ref=e38] [cursor=pointer]: Run History
+          - link "Credentials" [ref=e40] [cursor=pointer]:
+            - /url: /Credentials
+            - img [ref=e41] [cursor=pointer]
+            - generic [ref=e45] [cursor=pointer]: Credentials
+      - generic [ref=e48]:
+        - generic [ref=e50]: MVP Mode
+        - paragraph [ref=e51]: This is a visual prototype. Enable backend functions for live Workday integration.
+    - generic [ref=e53]:
+      - generic [ref=e55]: HR
+      - generic [ref=e56]:
+        - paragraph [ref=e57]: HR Administrator
+        - paragraph [ref=e58]: Integration Manager
+  - main [ref=e59]:
+    - generic [ref=e61]:
+      - button [ref=e62] [cursor=pointer]:
+        - img [ref=e63] [cursor=pointer]
+      - heading "Workday Weaver" [level=1] [ref=e65]
+    - generic [ref=e68]:
+      - generic [ref=e69]:
+        - heading "Run History" [level=1] [ref=e70]
+        - paragraph [ref=e71]: View and filter all integration executions
+      - generic [ref=e73]:
+        - generic [ref=e74]:
+          - generic [ref=e75]:
+            - img [ref=e76]
+            - textbox "Search by integration name..." [ref=e79]
+          - generic [ref=e80]:
+            - button "Filter by status" [ref=e81] [cursor=pointer]:
+              - generic [ref=e82] [cursor=pointer]: Filter by status
+              - img [ref=e83] [cursor=pointer]
+            - generic [ref=e85]:
+              - generic [ref=e86] [cursor=pointer]: All Statuses
+              - generic [ref=e87] [cursor=pointer]: Success
+              - generic [ref=e88] [cursor=pointer]: Failed
+              - generic [ref=e89] [cursor=pointer]: Pending
+          - generic [ref=e90]:
+            - button "Filter by integration" [ref=e91] [cursor=pointer]:
+              - generic [ref=e92] [cursor=pointer]: Filter by integration
+              - img [ref=e93] [cursor=pointer]
+            - generic [ref=e95]:
+              - generic [ref=e96] [cursor=pointer]: All Integrations
+              - generic [ref=e97] [cursor=pointer]: Time Off Requests
+              - generic [ref=e98] [cursor=pointer]: New Hire Personal Info
+        - generic [ref=e99]:
+          - img [ref=e100]
+          - generic [ref=e102]: Showing 5 of 5 runs
+      - generic [ref=e103]:
+        - heading "Execution History" [level=3] [ref=e105]
+        - generic [ref=e107]:
+          - generic [ref=e108]:
+            - img [ref=e110]
+            - generic [ref=e113]:
+              - generic [ref=e114]:
+                - heading "New Hire Personal Info" [level=4] [ref=e115]
+                - generic [ref=e116]: success
+              - generic [ref=e117]:
+                - generic [ref=e118]: webhook
+                - generic [ref=e119]: •
+                - generic [ref=e120]: 9/29/2025, 10:22:00 AM
+                - generic [ref=e121]: •
+                - generic [ref=e122]: 15 records processed
+            - generic [ref=e123]:
+              - generic [ref=e124]: Completed
+              - generic [ref=e125]: 10:22:45 AM
+          - generic [ref=e126]:
+            - img [ref=e128]
+            - generic [ref=e131]:
+              - generic [ref=e132]:
+                - heading "Time Off Requests" [level=4] [ref=e133]
+                - generic [ref=e134]: success
+              - generic [ref=e135]:
+                - generic [ref=e136]: manual
+                - generic [ref=e137]: •
+                - generic [ref=e138]: 9/28/2025, 7:45:00 AM
+                - generic [ref=e139]: •
+                - generic [ref=e140]: 8 records processed
+            - generic [ref=e141]:
+              - generic [ref=e142]: Completed
+              - generic [ref=e143]: 7:45:32 AM
+          - generic [ref=e144]:
+            - img [ref=e146]
+            - generic [ref=e150]:
+              - generic [ref=e151]:
+                - heading "New Hire Personal Info" [level=4] [ref=e152]
+                - generic [ref=e153]: failed
+              - generic [ref=e154]:
+                - generic [ref=e155]: webhook
+                - generic [ref=e156]: •
+                - generic [ref=e157]: 9/27/2025, 5:15:00 AM
+                - generic [ref=e158]: •
+                - generic [ref=e159]: 3 records processed
+              - generic [ref=e160]:
+                - strong [ref=e161]: "Error:"
+                - text: Invalid date format in row 4
+            - generic [ref=e162]:
+              - generic [ref=e163]: Completed
+              - generic [ref=e164]: 5:15:18 AM
+          - generic [ref=e165]:
+            - img [ref=e167]
+            - generic [ref=e170]:
+              - generic [ref=e171]:
+                - heading "Time Off Requests" [level=4] [ref=e172]
+                - generic [ref=e173]: success
+              - generic [ref=e174]:
+                - generic [ref=e175]: webhook
+                - generic [ref=e176]: •
+                - generic [ref=e177]: 9/26/2025, 12:30:00 PM
+                - generic [ref=e178]: •
+                - generic [ref=e179]: 12 records processed
+            - generic [ref=e180]:
+              - generic [ref=e181]: Completed
+              - generic [ref=e182]: 12:30:55 PM
+          - generic [ref=e183]:
+            - img [ref=e185]
+            - generic [ref=e188]:
+              - generic [ref=e189]:
+                - heading "New Hire Personal Info" [level=4] [ref=e190]
+                - generic [ref=e191]: success
+              - generic [ref=e192]:
+                - generic [ref=e193]: manual
+                - generic [ref=e194]: •
+                - generic [ref=e195]: 9/25/2025, 9:10:00 AM
+                - generic [ref=e196]: •
+                - generic [ref=e197]: 20 records processed
+            - generic [ref=e198]:
+              - generic [ref=e199]: Completed
+              - generic [ref=e200]: 9:11:05 AM
+```

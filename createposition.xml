@@ -1,0 +1,944 @@
+<bsvc:Create_Position_Request xmlns:bsvc="urn:com.workday/bsvc" bsvc:version="string">
+<!-- Optional: -->
+<bsvc:Business_Process_Parameters>
+<!-- Optional: -->
+<bsvc:Auto_Complete>false</bsvc:Auto_Complete>
+<!-- Optional: -->
+<bsvc:Run_Now>true</bsvc:Run_Now>
+<!-- Optional: -->
+<bsvc:Discard_On_Exit_Validation_Error>true</bsvc:Discard_On_Exit_Validation_Error>
+<!-- Optional: -->
+<bsvc:Comment_Data>
+<!-- Optional: -->
+<bsvc:Comment>string</bsvc:Comment>
+<!-- Optional: -->
+<bsvc:Worker_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Worker_Reference>
+</bsvc:Comment_Data>
+<!-- Zero or more repetitions: -->
+<bsvc:Business_Process_Attachment_Data>
+<bsvc:File_Name>string</bsvc:File_Name>
+<!-- Optional: -->
+<bsvc:Event_Attachment_Description>string</bsvc:Event_Attachment_Description>
+<!-- Optional: -->
+<bsvc:Event_Attachment_Category_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Event_Attachment_Category_Reference>
+<!-- Optional: -->
+<bsvc:File>c29ub3Jhcw==</bsvc:File>
+<!-- Optional: -->
+<bsvc:Content_Type>string</bsvc:Content_Type>
+</bsvc:Business_Process_Attachment_Data>
+</bsvc:Business_Process_Parameters>
+<bsvc:Create_Position_Data>
+<bsvc:Supervisory_Organization_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Supervisory_Organization_Reference>
+<!-- Optional: -->
+<bsvc:Position_Request_Reason_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Position_Request_Reason_Reference>
+<bsvc:Position_Data>
+<!-- Optional: -->
+<bsvc:Position_ID>string</bsvc:Position_ID>
+<!-- Optional: -->
+<bsvc:Job_Posting_Title>string</bsvc:Job_Posting_Title>
+<!-- Optional: -->
+<bsvc:Job_Description_Summary>string</bsvc:Job_Description_Summary>
+<!-- Optional: -->
+<bsvc:Job_Description>string</bsvc:Job_Description>
+<!-- Optional: -->
+<bsvc:Critical_Job>true</bsvc:Critical_Job>
+<!-- Optional: -->
+<bsvc:Difficulty_to_Fill_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Difficulty_to_Fill_Reference>
+<!-- Optional: -->
+<bsvc:Available_for_Overlap>true</bsvc:Available_for_Overlap>
+</bsvc:Position_Data>
+<!-- Optional: -->
+<bsvc:Qualification_Replacement_Data>
+<!-- Optional: -->
+<bsvc:Responsibility_Qualification_Replacement bsvc:Delete="true">
+<!-- Zero or more repetitions: -->
+<bsvc:Responsibility_Qualification_Replacement_Data>
+<bsvc:Responsibility_Description>string</bsvc:Responsibility_Description>
+<!-- Optional: -->
+<bsvc:Required>false</bsvc:Required>
+</bsvc:Responsibility_Qualification_Replacement_Data>
+</bsvc:Responsibility_Qualification_Replacement>
+<!-- Optional: -->
+<bsvc:Work_Experience_Qualification_Replacement bsvc:Delete="false">
+<!-- Zero or more repetitions: -->
+<bsvc:Work_Experience_Qualification_Replacement_Data>
+<bsvc:Worker_Experience_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Worker_Experience_Reference>
+<!-- Optional: -->
+<bsvc:Work_Experience_Rating_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Work_Experience_Rating_Reference>
+<!-- Optional: -->
+<bsvc:Required>false</bsvc:Required>
+</bsvc:Work_Experience_Qualification_Replacement_Data>
+</bsvc:Work_Experience_Qualification_Replacement>
+<!-- Optional: -->
+<bsvc:Education_Qualification_Replacement bsvc:Delete="true">
+<!-- Zero or more repetitions: -->
+<bsvc:Education_Qualification_Replacement_Data>
+<bsvc:Degree_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Degree_Reference>
+<!-- Optional: -->
+<bsvc:Field_Of_Study_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Field_Of_Study_Reference>
+<!-- Optional: -->
+<bsvc:Required>true</bsvc:Required>
+</bsvc:Education_Qualification_Replacement_Data>
+</bsvc:Education_Qualification_Replacement>
+<!-- Optional: -->
+<bsvc:Language_Qualification_Replacement bsvc:Delete="false">
+<!-- Zero or more repetitions: -->
+<bsvc:Language_Qualification_Replacement_Data>
+<bsvc:Language_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Language_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:Language_Ability_Profile_Data>
+<bsvc:Language_Ability_Type_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Language_Ability_Type_Reference>
+<!-- Optional: -->
+<bsvc:Language_Proficiency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Language_Proficiency_Reference>
+</bsvc:Language_Ability_Profile_Data>
+<!-- Optional: -->
+<bsvc:Required>true</bsvc:Required>
+</bsvc:Language_Qualification_Replacement_Data>
+</bsvc:Language_Qualification_Replacement>
+<!-- Optional: -->
+<bsvc:Competency_Qualification_Replacement bsvc:Delete="false">
+<!-- Zero or more repetitions: -->
+<bsvc:Competency_Qualification_Replacement_Data>
+<bsvc:Competency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Competency_Reference>
+<!-- Optional: -->
+<bsvc:Proficiency_Rating_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Proficiency_Rating_Reference>
+<!-- Optional: -->
+<bsvc:Required>false</bsvc:Required>
+</bsvc:Competency_Qualification_Replacement_Data>
+</bsvc:Competency_Qualification_Replacement>
+<!-- Optional: -->
+<bsvc:Certification_Qualification_Replacement bsvc:Delete="false">
+<!-- Zero or more repetitions: -->
+<bsvc:Certification_Qualification_Replacement_Data>
+<!-- Optional: -->
+<bsvc:Country_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Country_Reference>
+<!-- Optional: -->
+<bsvc:Certification_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Certification_Reference>
+<!-- Optional: -->
+<bsvc:Name>string</bsvc:Name>
+<!-- Optional: -->
+<bsvc:Issuer>string</bsvc:Issuer>
+<!-- Optional: -->
+<bsvc:Required>false</bsvc:Required>
+<!-- Zero or more repetitions: -->
+<bsvc:Specialty_Achievement_Reference>
+<!-- Optional: -->
+<bsvc:Specialty_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Specialty_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:Subspecialty_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Subspecialty_Reference>
+</bsvc:Specialty_Achievement_Reference>
+</bsvc:Certification_Qualification_Replacement_Data>
+</bsvc:Certification_Qualification_Replacement>
+<!-- Optional: -->
+<bsvc:Training_Qualification_Replacement bsvc:Delete="false">
+<!-- Zero or more repetitions: -->
+<bsvc:Training_Qualification_Replacement_Data>
+<!-- Optional: -->
+<bsvc:Training_Name>string</bsvc:Training_Name>
+<!-- Optional: -->
+<bsvc:Description>string</bsvc:Description>
+<!-- Optional: -->
+<bsvc:Training_Type_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Training_Type_Reference>
+<!-- Optional: -->
+<bsvc:Required>true</bsvc:Required>
+</bsvc:Training_Qualification_Replacement_Data>
+</bsvc:Training_Qualification_Replacement>
+<!-- Optional: -->
+<bsvc:Skill_Qualification_Replacement bsvc:Delete="true">
+<!-- Zero or more repetitions: -->
+<bsvc:Skill_Qualification_Replacement_Data>
+<!-- Optional: -->
+<bsvc:External_Skill_ID>string</bsvc:External_Skill_ID>
+<!-- Optional: -->
+<bsvc:Skill_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Skill_Reference>
+<!-- Optional: -->
+<bsvc:Name>string</bsvc:Name>
+<!-- Optional: -->
+<bsvc:Required>false</bsvc:Required>
+<!-- Optional: -->
+<bsvc:Skill_Level>1000.00</bsvc:Skill_Level>
+</bsvc:Skill_Qualification_Replacement_Data>
+</bsvc:Skill_Qualification_Replacement>
+</bsvc:Qualification_Replacement_Data>
+<!-- Optional: -->
+<bsvc:Position_Group_Restrictions_Data>
+<!-- Optional: -->
+<bsvc:Availability_Date>2019-08-19</bsvc:Availability_Date>
+<!-- Optional: -->
+<bsvc:Earliest_Hire_Date>2018-02-04+00:00</bsvc:Earliest_Hire_Date>
+<!-- Zero or more repetitions: -->
+<bsvc:Job_Family_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Job_Family_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:Job_Profile_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Job_Profile_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:Location_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Location_Reference>
+<!-- Optional: -->
+<bsvc:Worker_Type_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Worker_Type_Reference>
+<!-- Optional: -->
+<bsvc:Time_Type_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Time_Type_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:Position_Worker_Type_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Position_Worker_Type_Reference>
+<!-- Optional: -->
+<bsvc:Employment_System_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Employment_System_Reference>
+<!-- Optional: -->
+<bsvc:Functional_Class_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Functional_Class_Reference>
+<!-- Optional: -->
+<bsvc:PMIAA_Code_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:PMIAA_Code_Reference>
+<!-- Optional: -->
+<bsvc:Retirement_Special_Population_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Retirement_Special_Population_Reference>
+<!-- Optional: -->
+<bsvc:Sensitivity_and_Risk_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Sensitivity_and_Risk_Reference>
+<!-- Optional: -->
+<bsvc:Cybersecurity_Area_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Cybersecurity_Area_Reference>
+<!-- Optional: -->
+<bsvc:Security_Clearance_Level_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Security_Clearance_Level_Reference>
+<!-- Optional: -->
+<bsvc:Time_Type_Subtype_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Time_Type_Subtype_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:Cybersecurity_Area_Details_Data>
+<!-- Optional: -->
+<bsvc:Cybersecurity_Area_Details_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Cybersecurity_Area_Details_Reference>
+<bsvc:Cybersecurity_Area_Priority>1000.00</bsvc:Cybersecurity_Area_Priority>
+<bsvc:Cybersecurity_Area_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Cybersecurity_Area_Reference>
+</bsvc:Cybersecurity_Area_Details_Data>
+</bsvc:Position_Group_Restrictions_Data>
+<!-- Optional: -->
+<bsvc:Position_Restriction_Working_Hours_Details_Data>
+<!-- Optional: -->
+<bsvc:Default_Hours>1000.00</bsvc:Default_Hours>
+<!-- Optional: -->
+<bsvc:Scheduled_Hours>1000.00</bsvc:Scheduled_Hours>
+</bsvc:Position_Restriction_Working_Hours_Details_Data>
+<!-- Optional: -->
+<bsvc:Edit_Assign_Organization_Sub_Process>
+<!-- Optional: -->
+<bsvc:Business_Sub_Process_Parameters>
+<!-- You have a CHOICE of the next 2 items at this level -->
+<!-- Optional: -->
+<bsvc:Auto_Complete>true</bsvc:Auto_Complete>
+<!-- Optional: -->
+<bsvc:Skip>false</bsvc:Skip>
+<!-- Optional: -->
+<bsvc:Discard_On_Exit_Validation_Error>false</bsvc:Discard_On_Exit_Validation_Error>
+<!-- Optional: -->
+<bsvc:Business_Process_Comment_Data>
+<!-- Optional: -->
+<bsvc:Comment>string</bsvc:Comment>
+<!-- Optional: -->
+<bsvc:Worker_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Worker_Reference>
+</bsvc:Business_Process_Comment_Data>
+<!-- Zero or more repetitions: -->
+<bsvc:Business_Process_Attachment_Data>
+<bsvc:File_Name>string</bsvc:File_Name>
+<!-- Optional: -->
+<bsvc:Event_Attachment_Description>string</bsvc:Event_Attachment_Description>
+<!-- Optional: -->
+<bsvc:Event_Attachment_Category_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Event_Attachment_Category_Reference>
+<!-- Optional: -->
+<bsvc:File>YWM=</bsvc:File>
+<!-- Optional: -->
+<bsvc:Content_Type>string</bsvc:Content_Type>
+</bsvc:Business_Process_Attachment_Data>
+</bsvc:Business_Sub_Process_Parameters>
+<!-- Optional: -->
+<bsvc:Position_Organization_Assignments_Data>
+<!-- Zero or more repetitions: -->
+<bsvc:Company_Assignments_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Company_Assignments_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:Cost_Center_Assignments_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Cost_Center_Assignments_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:Region_Assignments_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Region_Assignments_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:Custom_Organization_Assignment_Data bsvc:Delete="false">
+<bsvc:Custom_Organization_Assignment_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Custom_Organization_Assignment_Reference>
+</bsvc:Custom_Organization_Assignment_Data>
+<!-- Zero or more repetitions: -->
+<bsvc:Fund_Assignments_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Fund_Assignments_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:Grant_Assignments_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Grant_Assignments_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:Program_Assignments_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Program_Assignments_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:Business_Unit_Assignments_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Business_Unit_Assignments_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:Gift_Assignments_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Gift_Assignments_Reference>
+</bsvc:Position_Organization_Assignments_Data>
+</bsvc:Edit_Assign_Organization_Sub_Process>
+<!-- Optional: -->
+<bsvc:Request_Default_Compensation_Sub_Process>
+<!-- Optional: -->
+<bsvc:Business_Sub_Process_Parameters>
+<!-- You have a CHOICE of the next 2 items at this level -->
+<!-- Optional: -->
+<bsvc:Auto_Complete>true</bsvc:Auto_Complete>
+<!-- Optional: -->
+<bsvc:Skip>true</bsvc:Skip>
+<!-- Optional: -->
+<bsvc:Discard_On_Exit_Validation_Error>false</bsvc:Discard_On_Exit_Validation_Error>
+<!-- Optional: -->
+<bsvc:Business_Process_Comment_Data>
+<!-- Optional: -->
+<bsvc:Comment>string</bsvc:Comment>
+<!-- Optional: -->
+<bsvc:Worker_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Worker_Reference>
+</bsvc:Business_Process_Comment_Data>
+<!-- Zero or more repetitions: -->
+<bsvc:Business_Process_Attachment_Data>
+<bsvc:File_Name>string</bsvc:File_Name>
+<!-- Optional: -->
+<bsvc:Event_Attachment_Description>string</bsvc:Event_Attachment_Description>
+<!-- Optional: -->
+<bsvc:Event_Attachment_Category_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Event_Attachment_Category_Reference>
+<!-- Optional: -->
+<bsvc:File>Y29uaXVueA==</bsvc:File>
+<!-- Optional: -->
+<bsvc:Content_Type>string</bsvc:Content_Type>
+</bsvc:Business_Process_Attachment_Data>
+</bsvc:Business_Sub_Process_Parameters>
+<!-- Optional: -->
+<bsvc:Compensation_Default_Data>
+<!-- You have a CHOICE of the next 3 items at this level -->
+<!-- Optional: -->
+<bsvc:Primary_Compensation_Basis>1000.00</bsvc:Primary_Compensation_Basis>
+<!-- Optional: -->
+<bsvc:Primary_Compensation_Basis_Amount_Change>1000.00</bsvc:Primary_Compensation_Basis_Amount_Change>
+<!-- Optional: -->
+<bsvc:Primary_Compensation_Basis_Percent_Change>1000.00</bsvc:Primary_Compensation_Basis_Percent_Change>
+<!-- Optional: -->
+<bsvc:Guidelines_Data>
+<!-- Optional: -->
+<bsvc:Compensation_Package_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Compensation_Package_Reference>
+<!-- Optional: -->
+<bsvc:Compensation_Grade_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Compensation_Grade_Reference>
+<!-- Optional: -->
+<bsvc:Compensation_Grade_Profile_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Compensation_Grade_Profile_Reference>
+<!-- Optional: -->
+<bsvc:Compensation_Step_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Compensation_Step_Reference>
+</bsvc:Guidelines_Data>
+<!-- Optional: -->
+<bsvc:Pay_Plan_Data bsvc:Replace="false">
+<!-- Zero or more repetitions: -->
+<bsvc:Pay_Plan_Sub_Data>
+<!-- Optional: -->
+<bsvc:Pay_Plan_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Pay_Plan_Reference>
+<!-- You have a CHOICE of the next 3 items at this level -->
+<bsvc:Amount>1000.00</bsvc:Amount>
+<bsvc:Percent_Change>1000.00</bsvc:Percent_Change>
+<bsvc:Amount_Change>1000.00</bsvc:Amount_Change>
+<!-- Optional: -->
+<bsvc:Currency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Currency_Reference>
+<!-- Optional: -->
+<bsvc:Frequency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Frequency_Reference>
+<!-- Optional: -->
+<bsvc:Expected_End_Date>2014-06-27+00:00</bsvc:Expected_End_Date>
+<!-- Optional: -->
+<bsvc:Actual_End_Date>2017-08-17</bsvc:Actual_End_Date>
+</bsvc:Pay_Plan_Sub_Data>
+</bsvc:Pay_Plan_Data>
+<!-- Optional: -->
+<bsvc:Unit_Salary_Plan_Data bsvc:Replace="true">
+<!-- Zero or more repetitions: -->
+<bsvc:Unit_Salary_Plan_Sub_Data>
+<!-- Optional: -->
+<bsvc:Unit_Salary_Plan_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Unit_Salary_Plan_Reference>
+<!-- Optional: -->
+<bsvc:Per_Unit_Amount>1000.00</bsvc:Per_Unit_Amount>
+<!-- Optional: -->
+<bsvc:Currency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Currency_Reference>
+<!-- Optional: -->
+<bsvc:Default_Units>1000.00</bsvc:Default_Units>
+<!-- Optional: -->
+<bsvc:Frequency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Frequency_Reference>
+<!-- Optional: -->
+<bsvc:Actual_End_Date>2000-01-06</bsvc:Actual_End_Date>
+</bsvc:Unit_Salary_Plan_Sub_Data>
+</bsvc:Unit_Salary_Plan_Data>
+<!-- Optional: -->
+<bsvc:Allowance_Plan_Non-Unit_Based_Data bsvc:Replace="false">
+<!-- Zero or more repetitions: -->
+<bsvc:Allowance_Plan_Sub_Data>
+<!-- Optional: -->
+<bsvc:Allowance_Plan_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Allowance_Plan_Reference>
+<!-- You have a CHOICE of the next 2 items at this level -->
+<!-- Optional: -->
+<bsvc:Percent>1000.00</bsvc:Percent>
+<!-- Optional: -->
+<bsvc:Amount>1000.00</bsvc:Amount>
+<!-- Optional: -->
+<bsvc:Manage_by_Compensation_Basis_Override_Amount>1000.00</bsvc:Manage_by_Compensation_Basis_Override_Amount>
+<!-- Optional: -->
+<bsvc:Currency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Currency_Reference>
+<!-- Optional: -->
+<bsvc:Frequency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Frequency_Reference>
+<!-- Optional: -->
+<bsvc:Expected_End_Date>2011-12-25</bsvc:Expected_End_Date>
+<!-- Optional: -->
+<bsvc:Reimbursement_Start_Date>2015-10-10+00:00</bsvc:Reimbursement_Start_Date>
+<!-- Optional: -->
+<bsvc:Actual_End_Date>2018-07-19+00:00</bsvc:Actual_End_Date>
+<!-- Optional: -->
+<bsvc:Fixed_for_Manage_by_Basis_Total>true</bsvc:Fixed_for_Manage_by_Basis_Total>
+</bsvc:Allowance_Plan_Sub_Data>
+</bsvc:Allowance_Plan_Non-Unit_Based_Data>
+<!-- Optional: -->
+<bsvc:Allowance_Plan_Unit_Based_Data bsvc:Replace="true">
+<!-- Zero or more repetitions: -->
+<bsvc:Unit_Allowance_Plan_Sub_Data>
+<!-- Optional: -->
+<bsvc:Unit_Allowance_Plan_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Unit_Allowance_Plan_Reference>
+<!-- Optional: -->
+<bsvc:Number_of_Units>1000.00</bsvc:Number_of_Units>
+<!-- Optional: -->
+<bsvc:Frequency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Frequency_Reference>
+<!-- Optional: -->
+<bsvc:Per_Unit_Amount>1000.00</bsvc:Per_Unit_Amount>
+<!-- Optional: -->
+<bsvc:Currency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Currency_Reference>
+<!-- Optional: -->
+<bsvc:Reimbursement_Start_Date>2011-06-03</bsvc:Reimbursement_Start_Date>
+<!-- Optional: -->
+<bsvc:Actual_End_Date>2018-01-21+00:00</bsvc:Actual_End_Date>
+<!-- Optional: -->
+<bsvc:Fixed_for_Manage_by_Basis_Total>true</bsvc:Fixed_for_Manage_by_Basis_Total>
+</bsvc:Unit_Allowance_Plan_Sub_Data>
+</bsvc:Allowance_Plan_Unit_Based_Data>
+<!-- Optional: -->
+<bsvc:Bonus_Plan_Data bsvc:Replace="true">
+<!-- Zero or more repetitions: -->
+<bsvc:Bonus_Plan_Sub_Data>
+<!-- Optional: -->
+<bsvc:Bonus_Plan_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Bonus_Plan_Reference>
+<!-- You have a CHOICE of the next 2 items at this level -->
+<!-- Optional: -->
+<bsvc:Individual_Target_Amount>1000.00</bsvc:Individual_Target_Amount>
+<!-- Optional: -->
+<bsvc:Individual_Target_Percent>1000.00</bsvc:Individual_Target_Percent>
+<!-- Optional: -->
+<bsvc:Manage_by_Compensation_Basis_Override_Amount>1000.00</bsvc:Manage_by_Compensation_Basis_Override_Amount>
+<!-- Optional: -->
+<bsvc:Guaranteed_Minimum>true</bsvc:Guaranteed_Minimum>
+<!-- Optional: -->
+<bsvc:Percent_Assigned>1000.00</bsvc:Percent_Assigned>
+<!-- Optional: -->
+<bsvc:Actual_End_Date>2019-03-02</bsvc:Actual_End_Date>
+<!-- Optional: -->
+<bsvc:Fixed_for_Manage_by_Basis_Total>false</bsvc:Fixed_for_Manage_by_Basis_Total>
+</bsvc:Bonus_Plan_Sub_Data>
+</bsvc:Bonus_Plan_Data>
+<!-- Optional: -->
+<bsvc:Merit_Plan_Data bsvc:Replace="true">
+<!-- Zero or more repetitions: -->
+<bsvc:Merit_Plan_Sub_Data>
+<!-- Optional: -->
+<bsvc:Merit_Plan_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Merit_Plan_Reference>
+<!-- Optional: -->
+<bsvc:Individual_Target_Amount>1000.00</bsvc:Individual_Target_Amount>
+<!-- Optional: -->
+<bsvc:Individual_Target_Percent>1000.00</bsvc:Individual_Target_Percent>
+<!-- Optional: -->
+<bsvc:Guaranteed_Minimum>true</bsvc:Guaranteed_Minimum>
+<!-- Optional: -->
+<bsvc:Actual_End_Date>2012-01-08+00:00</bsvc:Actual_End_Date>
+</bsvc:Merit_Plan_Sub_Data>
+</bsvc:Merit_Plan_Data>
+<!-- Optional: -->
+<bsvc:Commission_Plan_Data bsvc:Replace="true">
+<!-- Zero or more repetitions: -->
+<bsvc:Commission_Plan_Sub_Data>
+<!-- Optional: -->
+<bsvc:Commission_Plan_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Commission_Plan_Reference>
+<!-- You have a CHOICE of the next 2 items at this level -->
+<!-- Optional: -->
+<bsvc:Target_Percent>1000.00</bsvc:Target_Percent>
+<!-- Optional: -->
+<bsvc:Target_Amount>1000.00</bsvc:Target_Amount>
+<!-- Optional: -->
+<bsvc:Currency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Currency_Reference>
+<!-- Optional: -->
+<bsvc:Frequency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Frequency_Reference>
+<!-- Optional: -->
+<bsvc:Draw_Amount>1000.00</bsvc:Draw_Amount>
+<!-- Optional: -->
+<bsvc:Draw_Currency_Data>
+<!-- Optional: -->
+<bsvc:Draw_Currency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Draw_Currency_Reference>
+</bsvc:Draw_Currency_Data>
+<!-- Optional: -->
+<bsvc:Draw_Frequency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Draw_Frequency_Reference>
+<!-- Optional: -->
+<bsvc:Draw_Duration>string</bsvc:Draw_Duration>
+<!-- Optional: -->
+<bsvc:Recoverable>true</bsvc:Recoverable>
+<!-- Optional: -->
+<bsvc:Actual_End_Date>2002-05-25</bsvc:Actual_End_Date>
+<!-- Optional: -->
+<bsvc:Fixed_for_Manage_by_Basis_Total>false</bsvc:Fixed_for_Manage_by_Basis_Total>
+</bsvc:Commission_Plan_Sub_Data>
+</bsvc:Commission_Plan_Data>
+<!-- Optional: -->
+<bsvc:Stock_Plan_Data bsvc:Replace="false">
+<!-- Zero or more repetitions: -->
+<bsvc:Stock_Plan_Sub_Data>
+<!-- Optional: -->
+<bsvc:Stock_Plan_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Stock_Plan_Reference>
+<!-- You have a CHOICE of the next 3 items at this level -->
+<!-- Optional: -->
+<bsvc:Individual_Target_Shares>1000.00</bsvc:Individual_Target_Shares>
+<!-- Optional: -->
+<bsvc:Individual_Target_Percent>1000.00</bsvc:Individual_Target_Percent>
+<!-- Optional: -->
+<bsvc:Individual_Target_Amount>1000.00</bsvc:Individual_Target_Amount>
+<!-- Optional: -->
+<bsvc:Manage_by_Compensation_Basis_Override_Amount>1000.00</bsvc:Manage_by_Compensation_Basis_Override_Amount>
+<!-- Optional: -->
+<bsvc:Currency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Currency_Reference>
+<!-- Optional: -->
+<bsvc:Actual_End_Date>2019-05-04</bsvc:Actual_End_Date>
+<!-- Optional: -->
+<bsvc:Fixed_for_Manage_by_Basis_Total>false</bsvc:Fixed_for_Manage_by_Basis_Total>
+</bsvc:Stock_Plan_Sub_Data>
+</bsvc:Stock_Plan_Data>
+<!-- Optional: -->
+<bsvc:Period_Salary_Plan_Data bsvc:Replace="true">
+<!-- Zero or more repetitions: -->
+<bsvc:Period_Salary_Plan_Sub_Data>
+<!-- Optional: -->
+<bsvc:Period_Salary_Plan_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Period_Salary_Plan_Reference>
+<!-- Optional: -->
+<bsvc:Compensation_Period_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Compensation_Period_Reference>
+<!-- Optional: -->
+<bsvc:Manage_by_Compensation_Basis_Override_Amount>1000.00</bsvc:Manage_by_Compensation_Basis_Override_Amount>
+<!-- Optional: -->
+<bsvc:Currency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Currency_Reference>
+<!-- Optional: -->
+<bsvc:Compensation_Period_Multiplier>1000.00</bsvc:Compensation_Period_Multiplier>
+<!-- Optional: -->
+<bsvc:Frequency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Frequency_Reference>
+<!-- Optional: -->
+<bsvc:Actual_End_Date>2006-08-04</bsvc:Actual_End_Date>
+</bsvc:Period_Salary_Plan_Sub_Data>
+</bsvc:Period_Salary_Plan_Data>
+<!-- Optional: -->
+<bsvc:Calculated_Plan_Data bsvc:Replace="false">
+<!-- Zero or more repetitions: -->
+<bsvc:Calculated_Plan_Sub_Data>
+<!-- Optional: -->
+<bsvc:Calculated_Plan_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Calculated_Plan_Reference>
+<!-- Optional: -->
+<bsvc:Amount_Override>1000.00</bsvc:Amount_Override>
+<!-- Optional: -->
+<bsvc:Currency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Currency_Reference>
+<!-- Optional: -->
+<bsvc:Frequency_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Frequency_Reference>
+<!-- Optional: -->
+<bsvc:Actual_End_Date>2005-05-29+00:00</bsvc:Actual_End_Date>
+</bsvc:Calculated_Plan_Sub_Data>
+</bsvc:Calculated_Plan_Data>
+</bsvc:Compensation_Default_Data>
+</bsvc:Request_Default_Compensation_Sub_Process>
+<!-- Optional: -->
+<bsvc:Assign_Pay_Group_Sub_Process>
+<!-- Optional: -->
+<bsvc:Business_Sub_Process_Parameters>
+<!-- You have a CHOICE of the next 2 items at this level -->
+<!-- Optional: -->
+<bsvc:Auto_Complete>false</bsvc:Auto_Complete>
+<!-- Optional: -->
+<bsvc:Skip>true</bsvc:Skip>
+<!-- Optional: -->
+<bsvc:Discard_On_Exit_Validation_Error>true</bsvc:Discard_On_Exit_Validation_Error>
+<!-- Optional: -->
+<bsvc:Business_Process_Comment_Data>
+<!-- Optional: -->
+<bsvc:Comment>string</bsvc:Comment>
+<!-- Optional: -->
+<bsvc:Worker_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Worker_Reference>
+</bsvc:Business_Process_Comment_Data>
+<!-- Zero or more repetitions: -->
+<bsvc:Business_Process_Attachment_Data>
+<bsvc:File_Name>string</bsvc:File_Name>
+<!-- Optional: -->
+<bsvc:Event_Attachment_Description>string</bsvc:Event_Attachment_Description>
+<!-- Optional: -->
+<bsvc:Event_Attachment_Category_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Event_Attachment_Category_Reference>
+<!-- Optional: -->
+<bsvc:File>dmFzdG8=</bsvc:File>
+<!-- Optional: -->
+<bsvc:Content_Type>string</bsvc:Content_Type>
+</bsvc:Business_Process_Attachment_Data>
+</bsvc:Business_Sub_Process_Parameters>
+<!-- Optional: -->
+<bsvc:Assign_Pay_Group_Data>
+<bsvc:Pay_Group_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Pay_Group_Reference>
+</bsvc:Assign_Pay_Group_Data>
+</bsvc:Assign_Pay_Group_Sub_Process>
+<!-- Optional: -->
+<bsvc:Assign_Costing_Allocation_Sub_Process>
+<!-- Optional: -->
+<bsvc:Business_Sub_Process_Parameters>
+<!-- You have a CHOICE of the next 2 items at this level -->
+<!-- Optional: -->
+<bsvc:Auto_Complete>true</bsvc:Auto_Complete>
+<!-- Optional: -->
+<bsvc:Skip>true</bsvc:Skip>
+<!-- Optional: -->
+<bsvc:Discard_On_Exit_Validation_Error>false</bsvc:Discard_On_Exit_Validation_Error>
+<!-- Optional: -->
+<bsvc:Business_Process_Comment_Data>
+<!-- Optional: -->
+<bsvc:Comment>string</bsvc:Comment>
+<!-- Optional: -->
+<bsvc:Worker_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Worker_Reference>
+</bsvc:Business_Process_Comment_Data>
+<!-- Zero or more repetitions: -->
+<bsvc:Business_Process_Attachment_Data>
+<bsvc:File_Name>string</bsvc:File_Name>
+<!-- Optional: -->
+<bsvc:Event_Attachment_Description>string</bsvc:Event_Attachment_Description>
+<!-- Optional: -->
+<bsvc:Event_Attachment_Category_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Event_Attachment_Category_Reference>
+<!-- Optional: -->
+<bsvc:File>dGVtcGVzdGF0ZXNxdWU=</bsvc:File>
+<!-- Optional: -->
+<bsvc:Content_Type>string</bsvc:Content_Type>
+</bsvc:Business_Process_Attachment_Data>
+</bsvc:Business_Sub_Process_Parameters>
+<!-- Optional: -->
+<bsvc:Position_Costing_Allocation_Assignment_Data>
+<!-- 1 or more repetitions: -->
+<bsvc:Costing_Override_Data>
+<!-- Zero or more repetitions: -->
+<bsvc:Costing_Interval_Update_Key bsvc:Delete="true">
+<!-- You have a CHOICE of the next 2 items at this level -->
+<bsvc:Costing_Override_ID_Update_Key>string</bsvc:Costing_Override_ID_Update_Key>
+<bsvc:Start_Date_Update_Key>2003-02-28+00:00</bsvc:Start_Date_Update_Key>
+</bsvc:Costing_Interval_Update_Key>
+<!-- Optional: -->
+<bsvc:Costing_Override_ID>string</bsvc:Costing_Override_ID>
+<!-- Optional: -->
+<bsvc:Start_Date>2007-06-22+00:00</bsvc:Start_Date>
+<!-- Optional: -->
+<bsvc:End_Date>2013-11-24+00:00</bsvc:End_Date>
+<!-- Zero or more repetitions: -->
+<bsvc:Salary_Over_the_Cap_Default_Costing_Allocation_Detail_Data>
+<bsvc:SOC_Order>string</bsvc:SOC_Order>
+<!-- Optional: -->
+<bsvc:SOC_Default_from_Organization_Assignment>true</bsvc:SOC_Default_from_Organization_Assignment>
+<!-- Optional: -->
+<bsvc:SOC_Default_Costing_Company_Override_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:SOC_Default_Costing_Company_Override_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:SOC_Default_Worktag_Override_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string" bsvc:parent_id="string" bsvc:parent_type="string">string</bsvc:ID>
+</bsvc:SOC_Default_Worktag_Override_Reference>
+<bsvc:SOC_Distribution_Percent>1000.00</bsvc:SOC_Distribution_Percent>
+</bsvc:Salary_Over_the_Cap_Default_Costing_Allocation_Detail_Data>
+<!-- Zero or more repetitions: -->
+<bsvc:Costing_Allocation_Detail_Data>
+<bsvc:Order>string</bsvc:Order>
+<!-- Optional: -->
+<bsvc:Default_from_Organization_Assignment>false</bsvc:Default_from_Organization_Assignment>
+<!-- Optional: -->
+<bsvc:Costing_Override_Company_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Costing_Override_Company_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:Costing_Override_Worktag_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string" bsvc:parent_id="string" bsvc:parent_type="string">string</bsvc:ID>
+</bsvc:Costing_Override_Worktag_Reference>
+<bsvc:Distribution_Percent>1000.00</bsvc:Distribution_Percent>
+<!-- Zero or more repetitions: -->
+<bsvc:Salary_Over_the_Cap_Override_Costing_Allocation_Detail_Data>
+<bsvc:SOC_Order>string</bsvc:SOC_Order>
+<!-- Optional: -->
+<bsvc:SOC_Default_from_Organization_Assignment>true</bsvc:SOC_Default_from_Organization_Assignment>
+<!-- Optional: -->
+<bsvc:SOC_Costing_Override_Company_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:SOC_Costing_Override_Company_Reference>
+<!-- Zero or more repetitions: -->
+<bsvc:SOC_Override_Worktag_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string" bsvc:parent_id="string" bsvc:parent_type="string">string</bsvc:ID>
+</bsvc:SOC_Override_Worktag_Reference>
+<bsvc:SOC_Distribution_Percent>1000.00</bsvc:SOC_Distribution_Percent>
+</bsvc:Salary_Over_the_Cap_Override_Costing_Allocation_Detail_Data>
+</bsvc:Costing_Allocation_Detail_Data>
+</bsvc:Costing_Override_Data>
+<bsvc:Costing_Allocation_Level_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Costing_Allocation_Level_Reference>
+<!-- Optional: -->
+<bsvc:Costing_Allocation_Earning_Reference bsvc:Descriptor="string">
+<!-- Zero or more repetitions: -->
+<bsvc:ID bsvc:type="string">string</bsvc:ID>
+</bsvc:Costing_Allocation_Earning_Reference>
+</bsvc:Position_Costing_Allocation_Assignment_Data>
+</bsvc:Assign_Costing_Allocation_Sub_Process>
+</bsvc:Create_Position_Data>
+</bsvc:Create_Position_Request>
