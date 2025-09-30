@@ -40,21 +40,23 @@ export default function Dashboard() {
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-              Integration Dashboard
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Manage your Workday integrations with ease
-            </p>
+        <div className="bg-green-50 rounded-2xl p-6 border border-green-100" style={{ boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.5)' }}>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Integration Dashboard
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Manage your Workday integrations with ease
+              </p>
+            </div>
+            <Link to={createPageUrl("CreateIntegration")}>
+              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg">
+                <Plus className="w-5 h-5 mr-2" />
+                New Integration
+              </Button>
+            </Link>
           </div>
-          <Link to={createPageUrl("CreateIntegration")}>
-            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg">
-              <Plus className="w-5 h-5 mr-2" />
-              New Integration
-            </Button>
-          </Link>
         </div>
 
         {/* Stats Cards */}

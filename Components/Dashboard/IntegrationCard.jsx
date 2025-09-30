@@ -22,11 +22,11 @@ export default function IntegrationCard({ integration, onUpdate }) {
   };
 
   return (
-    <Card className="bg-white hover:shadow-xl transition-all duration-300 border-none shadow-md">
+    <Card className="bg-white hover:shadow-xl transition-all duration-300 border-none shadow-md flex flex-col h-full">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-green-500 rounded-lg flex items-center justify-center">
               <Workflow className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -37,7 +37,7 @@ export default function IntegrationCard({ integration, onUpdate }) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 flex-1">
         <div className="flex items-center gap-2">
           <Badge className={`${statusColors[integration.status]} border`}>
             {integration.status}
@@ -63,7 +63,7 @@ export default function IntegrationCard({ integration, onUpdate }) {
         )}
       </CardContent>
 
-      <CardFooter className="pt-0 flex gap-2">
+      <CardFooter className="pt-0 flex gap-2 mt-auto">
         <Link to={createPageUrl("IntegrationDetails") + `?id=${integration.id}`} className="flex-1">
           <Button variant="outline" className="w-full" size="sm">
             <ExternalLink className="w-4 h-4 mr-2" />

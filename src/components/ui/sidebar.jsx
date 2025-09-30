@@ -4,8 +4,11 @@ import { cn } from "@/lib/utils"
 const SidebarContext = React.createContext({ isOpen: true, toggle: () => {} })
 
 export function SidebarProvider({ children }) {
-  const [isOpen, setIsOpen] = React.useState(true)
-  
+  const [isOpen, setIsOpen] = React.useState(() => {
+    // Start closed on mobile, open on desktop
+    return typeof window !== 'undefined' && window.innerWidth >= 768
+  })
+
   const toggle = React.useCallback(() => {
     setIsOpen(prev => !prev)
   }, [])
@@ -18,19 +21,30 @@ export function SidebarProvider({ children }) {
 }
 
 export function Sidebar({ className, children, ...props }) {
-  const { isOpen } = React.useContext(SidebarContext)
-  
+  const { isOpen, toggle } = React.useContext(SidebarContext)
+
   return (
-    <aside
-      className={cn(
-        "flex h-screen w-64 flex-col transition-all duration-300",
-        !isOpen && "w-0 overflow-hidden md:w-16",
-        className
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={toggle}
+        />
       )}
-      {...props}
-    >
-      {children}
-    </aside>
+
+      <aside
+        className={cn(
+          "flex h-screen w-64 flex-col transition-all duration-300 md:relative fixed inset-y-0 left-0 z-50",
+          !isOpen && "-translate-x-full md:translate-x-0 md:w-16",
+          isOpen && "translate-x-0",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </aside>
+    </>
   )
 }
 
@@ -55,7 +69,7 @@ export function SidebarContent({ className, ...props }) {
 export function SidebarFooter({ className, ...props }) {
   return (
     <div
-      className={cn("mt-auto px-4 py-4", className)}
+      className={cn("sticky bottom-0 bg-white/80 backdrop-blur-sm px-4 py-4", className)}
       {...props}
     />
   )

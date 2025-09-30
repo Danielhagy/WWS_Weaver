@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Integration } from "@/entities/Integration";
@@ -23,7 +23,12 @@ const STEPS = [
 
 export default function CreateIntegration() {
   const navigate = useNavigate();
+  const urlParams = new URLSearchParams(window.location.search);
+  const editingId = urlParams.get('id');
+  const isEditMode = !!editingId;
+
   const [currentStep, setCurrentStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(isEditMode);
   const [integrationData, setIntegrationData] = useState({
     name: "",
     description: "",
@@ -33,6 +38,22 @@ export default function CreateIntegration() {
     validation_service: "",
     status: "draft"
   });
+
+  useEffect(() => {
+    if (isEditMode) {
+      loadIntegration();
+    }
+  }, [editingId]);
+
+  const loadIntegration = async () => {
+    setIsLoading(true);
+    const integrations = await Integration.list();
+    const existing = integrations.find(i => i.id === editingId);
+    if (existing) {
+      setIntegrationData(existing);
+    }
+    setIsLoading(false);
+  };
 
   const updateData = (newData) => {
     setIntegrationData(prev => ({ ...prev, ...newData }));
@@ -51,27 +72,46 @@ export default function CreateIntegration() {
   };
 
   const handleSave = async () => {
-    const newIntegration = await Integration.create(integrationData);
-    navigate(`${createPageUrl("IntegrationDetails")}?id=${newIntegration.id}`);
+    if (isEditMode) {
+      console.log('Updating integration:', editingId, integrationData);
+      const updated = await Integration.update(editingId, integrationData);
+      console.log('Updated integration:', updated);
+    } else {
+      console.log('Creating new integration:', integrationData);
+      // Generate webhook URL for new integrations
+      const generatedWebhookUrl = `https://api.base44.com/webhooks/${Math.random().toString(36).substr(2, 9)}`;
+      const newIntegrationData = {
+        ...integrationData,
+        webhook_url: generatedWebhookUrl,
+        status: "active"
+      };
+      const newIntegration = await Integration.create(newIntegrationData);
+      console.log('Created integration:', newIntegration);
+    }
   };
 
   const CurrentStepComponent = STEPS[currentStep - 1].component;
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-4 md:p-8 flex items-center justify-center">
+        <p className="text-gray-600">Loading integration...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => navigate(createPageUrl("Dashboard"))}
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
+        <div className="bg-green-50 rounded-2xl p-6 border border-green-100" style={{ boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.5)' }}>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Create New Integration</h1>
-            <p className="text-gray-600 mt-1">Build your Workday integration step by step</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {isEditMode ? "Edit Integration" : "Create New Integration"}
+            </h1>
+            <p className="text-gray-600 mt-1">
+              {isEditMode ? "Update your Workday integration" : "Build your Workday integration step by step"}
+            </p>
           </div>
         </div>
 

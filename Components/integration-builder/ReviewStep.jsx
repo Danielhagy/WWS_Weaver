@@ -7,7 +7,7 @@ import { ArrowLeft, Check, Loader2, Copy, ExternalLink, Code } from "lucide-reac
 import { Integration } from "@/entities/Integration";
 import { generateCreatePositionXML, generatePostmanInstructions } from "@/utils/xmlGenerator";
 
-export default function ReviewStep({ data, prevStep }) {
+export default function ReviewStep({ data, prevStep, onSave }) {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState(null);
@@ -15,20 +15,29 @@ export default function ReviewStep({ data, prevStep }) {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const generatedWebhookUrl = `https://api.base44.com/webhooks/${Math.random().toString(36).substr(2, 9)}`;
-      
-      const integrationData = {
-        ...data,
-        webhook_url: generatedWebhookUrl,
-        status: "active"
-      };
-      
-      const saved = await Integration.create(integrationData);
-      setWebhookUrl(generatedWebhookUrl);
-      
-      setTimeout(() => {
-        navigate(createPageUrl("Dashboard"));
-      }, 2000);
+      // If onSave is provided (from parent), use it instead
+      if (onSave) {
+        await onSave();
+        setTimeout(() => {
+          navigate(createPageUrl("Dashboard"));
+        }, 1500);
+      } else {
+        // Fallback to old behavior
+        const generatedWebhookUrl = `https://api.base44.com/webhooks/${Math.random().toString(36).substr(2, 9)}`;
+
+        const integrationData = {
+          ...data,
+          webhook_url: generatedWebhookUrl,
+          status: "active"
+        };
+
+        const saved = await Integration.create(integrationData);
+        setWebhookUrl(generatedWebhookUrl);
+
+        setTimeout(() => {
+          navigate(createPageUrl("Dashboard"));
+        }, 2000);
+      }
     } catch (error) {
       console.error("Error saving integration:", error);
     }

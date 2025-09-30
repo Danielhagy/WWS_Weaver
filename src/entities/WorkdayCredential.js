@@ -8,9 +8,11 @@ const INITIAL_CREDENTIALS = [
   {
     id: 'cred-001',
     tenant_name: 'acme_demo',
-    tenant_url: 'https://wd2-impl.workday.com',
+    username: 'ISU_Integration_User',
+    tenant_url: 'https://wd2-impl-services1.workday.com/ccx/service/acme_demo',
     isu_username: 'ISU_Integration_User@acme_demo',
     isu_password_encrypted: 'ZW5jcnlwdGVkX3Bhc3N3b3JkXzEyMzQ1Ng==',
+    data_center: 'WD2',
     is_active: true,
     last_validated: '2025-09-28T10:00:00Z',
     created_date: '2025-09-01T08:00:00Z'

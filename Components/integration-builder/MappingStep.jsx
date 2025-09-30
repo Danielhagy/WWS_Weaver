@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, FileSpreadsheet } from "lucide-react";
 import { UploadFile } from "@/integrations/Core";
@@ -12,6 +12,39 @@ export default function MappingStep({ data, updateData, nextStep, prevStep }) {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [csvHeaders, setCsvHeaders] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Load existing file info if in edit mode
+  useEffect(() => {
+    if (data.sample_file_url && !uploadedFile) {
+      // Use saved headers if available, otherwise extract from mappings
+      let headers = [];
+
+      if (data.sample_file_headers && Array.isArray(data.sample_file_headers)) {
+        headers = data.sample_file_headers;
+      } else {
+        // Fallback: extract headers from existing field mappings
+        const existingHeaders = new Set();
+        data.field_mappings?.forEach(mapping => {
+          if (mapping.source_type === 'file_column' && mapping.source_field) {
+            existingHeaders.add(mapping.source_field);
+          }
+        });
+        headers = Array.from(existingHeaders);
+      }
+
+      if (headers.length > 0) {
+        setCsvHeaders(headers);
+        // Create a file info object from existing data
+        const fileName = data.sample_file_name || data.sample_file_url.split('/').pop() || 'uploaded-file';
+        const fileType = fileName.endsWith('.xlsx') || fileName.endsWith('.xls') ? 'excel' : 'csv';
+        setUploadedFile({
+          name: fileName,
+          url: data.sample_file_url,
+          type: fileType
+        });
+      }
+    }
+  }, [data.sample_file_url, data.sample_file_name, data.sample_file_headers, data.field_mappings]);
 
   const handleFileUpload = async (file) => {
     setIsUploading(true);
@@ -49,6 +82,8 @@ export default function MappingStep({ data, updateData, nextStep, prevStep }) {
       setUploadedFile({ name: file.name, url: file_url, type: fileType });
       updateData({
         sample_file_url: file_url,
+        sample_file_name: file.name,
+        sample_file_headers: headers,
         sample_row_data: firstRowData
       });
     } catch (error) {

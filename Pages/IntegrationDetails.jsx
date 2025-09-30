@@ -85,21 +85,23 @@ export default function IntegrationDetails() {
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => navigate(createPageUrl("Dashboard"))}
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900">{integration.name}</h1>
-            <p className="text-gray-600 mt-1">{integration.workday_service}</p>
+        <div className="bg-green-50 rounded-2xl p-6 border border-green-100" style={{ boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.5)' }}>
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate(createPageUrl("Dashboard"))}
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-900">{integration.name}</h1>
+              <p className="text-gray-600 mt-1">{integration.workday_service}</p>
+            </div>
+            <Badge className={statusColors[integration.status]}>
+              {integration.status}
+            </Badge>
           </div>
-          <Badge className={statusColors[integration.status]}>
-            {integration.status}
-          </Badge>
         </div>
 
         <div className="flex gap-3">
@@ -117,7 +119,11 @@ export default function IntegrationDetails() {
             <Copy className="w-4 h-4 mr-2" />
             Copy Webhook
           </Button>
-          <Button variant="outline" className="ml-auto">
+          <Button
+            variant="outline"
+            className="ml-auto"
+            onClick={() => navigate(createPageUrl("CreateIntegration") + `?id=${integrationId}`)}
+          >
             <Edit className="w-4 h-4 mr-2" />
             Edit
           </Button>
