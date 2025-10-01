@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
 export default function StepBlock({ step, isSelected, onClick, onDelete, previousSteps }) {
-  const isConfigured = step.webService !== null
+  const isConfigured = step.webService !== null || step.existingStitchId !== null
   const hasMappings = step.mappings && step.mappings.length > 0
   const hasGoldenThreads = previousSteps.length > 0
 

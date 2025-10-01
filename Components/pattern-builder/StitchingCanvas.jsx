@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import { Plus, Sparkles } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
   const [selectedStepId, setSelectedStepId] = useState(null)
   const [configPanelOpen, setConfigPanelOpen] = useState(false)
   const [webhookConfigOpen, setWebhookConfigOpen] = useState(false)
+  const [isConfigExpanded, setIsConfigExpanded] = useState(false)
 
   const handleAddStep = () => {
     const newStep = {
@@ -34,7 +35,12 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
   const handleConfigClose = () => {
     setConfigPanelOpen(false)
     setSelectedStepId(null)
+    setIsConfigExpanded(false)
   }
+
+  const handleExpandChange = useCallback((shouldExpand) => {
+    setIsConfigExpanded(shouldExpand)
+  }, [])
 
   const handleUpdateStep = (stepId, updates) => {
     setSteps(steps.map(step =>
@@ -54,7 +60,7 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
   return (
     <div className="grid grid-cols-12 gap-6">
       {/* Canvas Area */}
-      <div className="col-span-8">
+      <div className={`transition-all duration-300 ${isConfigExpanded ? 'col-span-5' : 'col-span-8'}`}>
         <Card className="p-8 min-h-[600px] bg-gradient-to-br from-white to-soft-gray/30 relative overflow-hidden">
           {/* Decorative Background Pattern */}
           <div className="absolute inset-0 opacity-5">
@@ -74,10 +80,10 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-primary-dark-blue">
-                    Stitching Canvas
+                    Thread Canvas
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Build your workflow by connecting steps
+                    Build your workflow by connecting steps with Golden Threads
                   </p>
                 </div>
               </div>
@@ -157,7 +163,7 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
       </div>
 
       {/* Configuration Panel */}
-      <div className="col-span-4">
+      <div className={`transition-all duration-300 ${isConfigExpanded ? 'col-span-7' : 'col-span-4'}`}>
         <div className="sticky top-8">
           <StepConfigPanel
             step={selectedStep}
@@ -166,6 +172,7 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
             onUpdate={handleUpdateStep}
             previousSteps={selectedStep ? steps.slice(0, steps.findIndex(s => s.id === selectedStep.id)) : []}
             webhookConfig={webhookConfig}
+            onExpandChange={handleExpandChange}
           />
         </div>
       </div>

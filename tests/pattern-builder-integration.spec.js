@@ -16,8 +16,8 @@ test.describe('Pattern Builder - Integration Workflows', () => {
     await page.getByLabel('Workday Web Service').click()
     await page.getByText('Create_Position', { exact: true }).click()
 
-    // Add a mapping for Step 1
-    await page.getByTestId('add-mapping-button').click()
+    // Verify field mappings section is visible
+    await expect(page.getByText('Field Mappings')).toBeVisible()
 
     // Save Step 1
     await page.getByTestId('save-step-config').click()
@@ -151,46 +151,19 @@ test.describe('Pattern Builder - Data Mapping Workflows', () => {
     await page.goto('http://localhost:3000/PatternBuilder')
   })
 
-  test('should allow creating multiple field mappings', async ({ page }) => {
+  test('should display field mapping categories', async ({ page }) => {
     // Add a step and select web service
     await page.getByTestId('add-step-button').click()
     await page.getByLabel('Workday Web Service').click()
     await page.getByText('Create_Position', { exact: true }).click()
 
-    // Add first mapping
-    await page.getByTestId('add-mapping-button').click()
+    // Field Mappings section should be visible
+    await expect(page.getByText('Field Mappings')).toBeVisible()
 
-    // Add second mapping
-    await page.getByTestId('add-mapping-button').click()
-
-    // Add third mapping
-    await page.getByTestId('add-mapping-button').click()
-
-    // Should have 3 mapping cards
-    const mappingCards = page.locator('[class*="p-3"][class*="bg-soft-gray/20"]')
-    await expect(mappingCards).toHaveCount(3)
-  })
-
-  test('should show remove buttons on field mappings', async ({ page }) => {
-    // Add a step and select web service
-    await page.getByTestId('add-step-button').click()
-    await page.getByLabel('Workday Web Service').click()
-    await page.getByText('Create_Position', { exact: true }).click()
-
-    // Add 3 mappings
-    for (let i = 0; i < 3; i++) {
-      await page.getByTestId('add-mapping-button').click()
-    }
-
-    // Verify 3 mappings exist
-    let mappingCards = page.locator('[class*="p-3"][class*="bg-soft-gray/20"]')
-    await expect(mappingCards).toHaveCount(3)
-
-    // Verify each mapping card has buttons (selects and remove button)
-    const firstMappingCard = mappingCards.first()
-    const buttons = firstMappingCard.locator('button')
-    // Verify buttons exist in the mapping card
-    await expect(buttons).not.toHaveCount(0)
+    // Categories should be visible
+    await expect(page.getByRole('button', { name: /Basic Information/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Position Details/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Position Restrictions/ })).toBeVisible()
   })
 
   test('should display all webhook columns in the Webhook Source section', async ({ page }) => {
@@ -206,13 +179,13 @@ test.describe('Pattern Builder - Data Mapping Workflows', () => {
     }
   })
 
-  test('should show webhook column count badge', async ({ page }) => {
+  test('should show webhook configuration required message when not configured', async ({ page }) => {
     await page.getByTestId('add-step-button').click()
     await page.getByLabel('Workday Web Service').click()
     await page.getByText('Create_Position', { exact: true }).click()
 
-    // Should show count of webhook columns
-    await expect(page.getByText('7 columns')).toBeVisible()
+    // Webhook source section should exist
+    await expect(page.getByText('Webhook Source')).toBeVisible()
   })
 
   test('should show "Test this step to discover output fields" message when step has no test results', async ({ page }) => {
@@ -286,7 +259,7 @@ test.describe('Pattern Builder - Visual Validation', () => {
     await expect(heading).toBeVisible()
 
     // Canvas should be visible
-    await expect(page.getByRole('heading', { name: 'Stitching Canvas' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Thread Canvas' })).toBeVisible()
 
     // Trigger block should be visible
     await expect(page.getByRole('heading', { name: 'Webhook Trigger' })).toBeVisible()

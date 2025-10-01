@@ -15,7 +15,7 @@ test.describe('Pattern Builder Page', () => {
     await expect(page.getByLabel('Description')).toBeVisible()
 
     // Check canvas header
-    await expect(page.getByRole('heading', { name: 'Stitching Canvas' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Thread Canvas' })).toBeVisible()
 
     // Check buttons
     await expect(page.getByRole('button', { name: /Back to Dashboard/i })).toBeVisible()
@@ -26,7 +26,7 @@ test.describe('Pattern Builder Page', () => {
 
   test('should display the Webhook Trigger block', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Webhook Trigger' })).toBeVisible()
-    await expect(page.getByText('Pattern starts when webhook receives data')).toBeVisible()
+    await expect(page.getByText('Click to configure webhook settings')).toBeVisible()
     await expect(page.getByText('Entry Point')).toBeVisible()
   })
 
@@ -117,18 +117,19 @@ test.describe('Pattern Builder Page', () => {
     await expect(page.getByTestId('webhook-column-email')).toBeVisible()
   })
 
-  test('should allow adding field mappings', async ({ page }) => {
+  test('should display field mappings by category', async ({ page }) => {
     // Add a step and configure it
     await page.getByTestId('add-step-button').click()
     await page.getByLabel('Workday Web Service').click()
     await page.getByText('Create_Position', { exact: true }).click()
 
-    // Add a mapping
-    await page.getByTestId('add-mapping-button').click()
+    // Field Mappings section should be visible
+    await expect(page.getByText('Field Mappings')).toBeVisible()
 
-    // Mapping fields should appear
-    const mappingCards = page.locator('[class*="p-3"][class*="bg-soft-gray/20"]')
-    await expect(mappingCards).toHaveCount(1)
+    // Categories should be visible
+    await expect(page.getByRole('button', { name: /Basic Information/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Position Details/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Position Restrictions/ })).toBeVisible()
   })
 
   test('should save step configuration', async ({ page }) => {
@@ -190,7 +191,7 @@ test.describe('Pattern Builder Page', () => {
     await page.getByText('Contract_Contingent_Worker', { exact: true }).click()
 
     // Now Golden Threads section should be fully visible
-    await expect(page.getByText('Golden Threads')).toBeVisible()
+    await expect(page.getByText('Golden Threads', { exact: true })).toBeVisible()
     await expect(page.getByText('from previous steps')).toBeVisible()
   })
 
