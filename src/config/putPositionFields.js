@@ -7,7 +7,7 @@ export const PUT_POSITION_FIELDS = [
   // Only Supervisory_Organization_Reference is not marked as "Optional:" in the XML
 
   {
-    name: "Supervisory_Organization_ID",
+    name: "Supervisory Organization ID",
     xmlPath: "Create_Position_Data.Supervisory_Organization_Reference.ID",
     required: true, // NOT marked as optional in XML line 37
     type: "text_with_type",
@@ -21,7 +21,7 @@ export const PUT_POSITION_FIELDS = [
   // === POSITION DATA FIELDS (All Optional per XML) ===
 
   {
-    name: "Position_ID",
+    name: "Position ID",
     xmlPath: "Create_Position_Data.Position_Data.Position_ID",
     required: false,
     type: "text",
@@ -30,7 +30,7 @@ export const PUT_POSITION_FIELDS = [
     helpText: "Optional: Leave blank for Workday to auto-generate, or provide a custom ID"
   },
   {
-    name: "Job_Posting_Title",
+    name: "Job Posting Title",
     xmlPath: "Create_Position_Data.Position_Data.Job_Posting_Title",
     required: false,
     type: "text",
@@ -39,7 +39,7 @@ export const PUT_POSITION_FIELDS = [
     helpText: "Optional: External-facing job title (e.g., 'Senior Software Engineer')"
   },
   {
-    name: "Job_Description_Summary",
+    name: "Job Description Summary",
     xmlPath: "Create_Position_Data.Position_Data.Job_Description_Summary",
     required: false,
     type: "textarea",
@@ -48,7 +48,7 @@ export const PUT_POSITION_FIELDS = [
     helpText: "Optional: Short description for job postings and quick reference"
   },
   {
-    name: "Job_Description",
+    name: "Job Description",
     xmlPath: "Create_Position_Data.Position_Data.Job_Description",
     required: false,
     type: "textarea",
@@ -57,7 +57,7 @@ export const PUT_POSITION_FIELDS = [
     helpText: "Optional: Detailed description of responsibilities, requirements, qualifications"
   },
   {
-    name: "Critical_Job",
+    name: "Critical Job",
     xmlPath: "Create_Position_Data.Position_Data.Critical_Job",
     required: false,
     type: "boolean",
@@ -67,7 +67,7 @@ export const PUT_POSITION_FIELDS = [
     defaultValue: false
   },
   {
-    name: "Available_for_Overlap",
+    name: "Available for Overlap",
     xmlPath: "Create_Position_Data.Position_Data.Available_for_Overlap",
     required: false,
     type: "boolean",
@@ -77,7 +77,7 @@ export const PUT_POSITION_FIELDS = [
     defaultValue: false
   },
   {
-    name: "Difficulty_to_Fill_ID",
+    name: "Difficulty to Fill ID",
     xmlPath: "Create_Position_Data.Position_Data.Difficulty_to_Fill_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -91,7 +91,7 @@ export const PUT_POSITION_FIELDS = [
   // === POSITION GROUP RESTRICTIONS DATA ===
 
   {
-    name: "Availability_Date",
+    name: "Availability Date",
     xmlPath: "Create_Position_Data.Position_Group_Restrictions_Data.Availability_Date",
     required: false,
     type: "date",
@@ -100,7 +100,7 @@ export const PUT_POSITION_FIELDS = [
     helpText: "Optional: Date format: YYYY-MM-DD (e.g., 2024-01-15)"
   },
   {
-    name: "Earliest_Hire_Date",
+    name: "Earliest Hire Date",
     xmlPath: "Create_Position_Data.Position_Group_Restrictions_Data.Earliest_Hire_Date",
     required: false,
     type: "date",
@@ -109,7 +109,7 @@ export const PUT_POSITION_FIELDS = [
     helpText: "Optional: Date format: YYYY-MM-DD (e.g., 2024-02-01)"
   },
   {
-    name: "Job_Family_ID",
+    name: "Job Family ID",
     xmlPath: "Create_Position_Data.Position_Group_Restrictions_Data.Job_Family_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -120,7 +120,7 @@ export const PUT_POSITION_FIELDS = [
     helpText: "Optional: Classify position by job family (e.g., Engineering, Sales, HR)"
   },
   {
-    name: "Job_Profile_ID",
+    name: "Job Profile ID",
     xmlPath: "Create_Position_Data.Position_Group_Restrictions_Data.Job_Profile_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -131,7 +131,7 @@ export const PUT_POSITION_FIELDS = [
     helpText: "Optional: Link to predefined job profile template"
   },
   {
-    name: "Location_ID",
+    name: "Location ID",
     xmlPath: "Create_Position_Data.Position_Group_Restrictions_Data.Location_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -142,7 +142,7 @@ export const PUT_POSITION_FIELDS = [
     helpText: "Optional: Workday location ID for the position"
   },
   {
-    name: "Worker_Type_ID",
+    name: "Worker Type ID",
     xmlPath: "Create_Position_Data.Position_Group_Restrictions_Data.Worker_Type_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -153,7 +153,7 @@ export const PUT_POSITION_FIELDS = [
     helpText: "Optional: Specify worker classification (e.g., Employee, Contractor)"
   },
   {
-    name: "Time_Type_ID",
+    name: "Time Type ID",
     xmlPath: "Create_Position_Data.Position_Group_Restrictions_Data.Time_Type_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -164,7 +164,7 @@ export const PUT_POSITION_FIELDS = [
     helpText: "Optional: Work time classification (e.g., Full_Time, Part_Time)"
   },
   {
-    name: "Position_Worker_Type_ID",
+    name: "Position Worker Type ID",
     xmlPath: "Create_Position_Data.Position_Group_Restrictions_Data.Position_Worker_Type_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -175,7 +175,7 @@ export const PUT_POSITION_FIELDS = [
     helpText: "Optional: Additional worker type classification for this position"
   },
   {
-    name: "Default_Hours",
+    name: "Default Hours",
     xmlPath: "Create_Position_Data.Position_Restriction_Working_Hours_Details_Data.Default_Hours",
     required: false,
     type: "number",
@@ -184,7 +184,7 @@ export const PUT_POSITION_FIELDS = [
     helpText: "Optional: Standard hours per week (e.g., 40.00)"
   },
   {
-    name: "Scheduled_Hours",
+    name: "Scheduled Hours",
     xmlPath: "Create_Position_Data.Position_Restriction_Working_Hours_Details_Data.Scheduled_Hours",
     required: false,
     type: "number",
@@ -196,7 +196,7 @@ export const PUT_POSITION_FIELDS = [
   // === POSITION REQUEST REASON (Optional per XML) ===
 
   {
-    name: "Position_Request_Reason_ID",
+    name: "Position Request Reason ID",
     xmlPath: "Create_Position_Data.Position_Request_Reason_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -210,7 +210,7 @@ export const PUT_POSITION_FIELDS = [
   // === BUSINESS PROCESS PARAMETERS (All Optional per XML) ===
 
   {
-    name: "Auto_Complete",
+    name: "Auto Complete",
     xmlPath: "Business_Process_Parameters.Auto_Complete",
     required: false,
     type: "boolean",
@@ -220,7 +220,7 @@ export const PUT_POSITION_FIELDS = [
     defaultValue: false
   },
   {
-    name: "Run_Now",
+    name: "Run Now",
     xmlPath: "Business_Process_Parameters.Run_Now",
     required: false,
     type: "boolean",
@@ -315,6 +315,7 @@ export const DYNAMIC_FUNCTIONS = [
 // Mapping source types
 export const MAPPING_SOURCE_TYPES = {
   FILE_COLUMN: 'file_column',
+  GLOBAL_ATTRIBUTE: 'global_attribute',
   HARDCODED: 'hardcoded',
   DYNAMIC_FUNCTION: 'dynamic_function',
   UNMAPPED: 'unmapped'

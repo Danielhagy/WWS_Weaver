@@ -1,25 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowRight, Info } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { ArrowRight, Info, Users, ChevronDown, ChevronRight, CheckCircle2, Search } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-// For MVP, we'll focus on Put Position only
-const WORKDAY_SERVICES = [
-  { 
-    value: "Create_Position", 
-    label: "Create Position (Put Position) - Staffing v44.2",
+// Web Services organized by category
+const WEB_SERVICES = [
+  {
+    id: "staffing",
+    name: "Staffing",
     version: "v44.2",
-    description: "Create new positions in your organizational structure",
-    service: "Staffing"
+    description: "Manage positions, workers, and organizational assignments",
+    icon: Users,
+    operations: [
+      {
+        value: "Create_Position",
+        label: "Create Position",
+        description: "Create new positions in your organizational structure"
+      },
+      {
+        value: "Contract_Contingent_Worker",
+        label: "Contract Contingent Worker",
+        description: "Contract contingent workers for temporary or project-based work"
+      }
+    ]
   }
+  // Future services will be added here: HCM, Recruiting, Compensation, etc.
 ];
 
 export default function ConfigurationStep({ data, updateData, nextStep }) {
-  const selectedService = WORKDAY_SERVICES.find(s => s.value === data.workday_service);
+  const [expandedService, setExpandedService] = useState(
+    data.workday_service ? WEB_SERVICES.find(s =>
+      s.operations.some(op => op.value === data.workday_service)
+    )?.id : null
+  );
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleNext = () => {
     if (data.name && data.workday_service) {
@@ -27,20 +45,40 @@ export default function ConfigurationStep({ data, updateData, nextStep }) {
     }
   };
 
+  const toggleService = (serviceId) => {
+    setExpandedService(expandedService === serviceId ? null : serviceId);
+  };
+
+  const handleOperationSelect = (operationValue) => {
+    updateData({ workday_service: operationValue });
+  };
+
+  // Filter services and operations based on search query
+  const filteredServices = WEB_SERVICES.map(service => {
+    const matchesServiceName = service.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesServiceDescription = service.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const filteredOperations = service.operations.filter(op =>
+      op.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      op.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Show service if it matches or any of its operations match
+    if (matchesServiceName || matchesServiceDescription || filteredOperations.length > 0) {
+      return {
+        ...service,
+        operations: searchQuery ? filteredOperations : service.operations
+      };
+    }
+    return null;
+  }).filter(Boolean);
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Configuration</h2>
         <p className="text-gray-600">Set up the basic details of your integration</p>
       </div>
-
-      <Alert variant="info" className="bg-blue-50 border-blue-200">
-        <Info className="w-4 h-4 text-blue-600" />
-        <AlertDescription className="text-blue-900">
-          <strong>MVP Mode:</strong> Currently supporting Create Position web service. 
-          Additional services will be available in future releases.
-        </AlertDescription>
-      </Alert>
 
       <div className="space-y-4">
         <div>
@@ -72,37 +110,107 @@ export default function ConfigurationStep({ data, updateData, nextStep }) {
         </div>
 
         <div>
-          <Label htmlFor="service">Workday Web Service *</Label>
-          <Select
-            value={data.workday_service || ""}
-            onValueChange={(value) => {
-              updateData({ workday_service: value });
-            }}
-          >
-            <SelectTrigger className="mt-1" id="service">
-              <SelectValue placeholder="Select a Workday service" />
-            </SelectTrigger>
-            <SelectContent>
-              {WORKDAY_SERVICES.map((service) => (
-                <SelectItem key={service.value} value={service.value}>
-                  {service.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {selectedService && (
-            <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
-              <p className="text-sm text-gray-700">
-                <strong>Selected:</strong> {selectedService.service} - {selectedService.version}
-              </p>
-              <p className="text-xs text-gray-600 mt-1">
-                {selectedService.description}
-              </p>
-            </div>
-          )}
-          <p className="text-sm text-gray-500 mt-1">
-            Choose the Workday web service operation you want to execute
+          <Label>Workday Web Service *</Label>
+          <p className="text-sm text-gray-500 mt-1 mb-3">
+            Select a web service category, then choose an operation
           </p>
+
+          {/* Search Bar */}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              placeholder="Search web services and operations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          <div className="space-y-3">
+            {filteredServices.length === 0 ? (
+              <Card className="p-8 text-center">
+                <p className="text-gray-500">No web services or operations match your search.</p>
+              </Card>
+            ) :
+              filteredServices.map((service) => {
+              const ServiceIcon = service.icon;
+              const isExpanded = expandedService === service.id;
+              const hasSelectedOperation = service.operations.some(op => op.value === data.workday_service);
+
+              return (
+                <Card key={service.id} className="overflow-hidden border-2 transition-all">
+                  {/* Service Header - Clickable Tile */}
+                  <button
+                    type="button"
+                    onClick={() => toggleService(service.id)}
+                    className="w-full p-4 flex items-center gap-4 hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-accent-teal to-accent-teal/70 flex items-center justify-center flex-shrink-0">
+                      <ServiceIcon className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-primary-dark-blue">{service.name}</h3>
+                        <span className="text-xs px-2 py-0.5 bg-gray-100 rounded-full text-gray-600">
+                          {service.version}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-0.5">{service.description}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {hasSelectedOperation && (
+                        <CheckCircle2 className="w-5 h-5 text-green-600" />
+                      )}
+                      {isExpanded ? (
+                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Operations List - Expanded */}
+                  {isExpanded && (
+                    <div className="border-t bg-gray-50/50 p-3 space-y-2">
+                      {service.operations.map((operation) => {
+                        const isSelected = data.workday_service === operation.value;
+
+                        return (
+                          <button
+                            key={operation.value}
+                            type="button"
+                            onClick={() => handleOperationSelect(operation.value)}
+                            className={`w-full p-3 rounded-lg border-2 transition-all text-left ${
+                              isSelected
+                                ? 'border-accent-teal bg-accent-teal/5'
+                                : 'border-gray-200 hover:border-accent-teal/50 bg-white'
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-semibold text-primary-dark-blue">
+                                    {operation.label}
+                                  </p>
+                                  {isSelected && (
+                                    <CheckCircle2 className="w-4 h-4 text-accent-teal flex-shrink-0" />
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  {operation.description}
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </Card>
+              );
+            })
+            }
+          </div>
         </div>
       </div>
 

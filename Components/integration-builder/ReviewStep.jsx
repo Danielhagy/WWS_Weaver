@@ -181,7 +181,27 @@ function XMLPreview({ data }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const generatedXML = generateCreatePositionXML(data, data.sample_row_data || {});
+  // Merge file data (first row) with global attributes for complete XML generation
+  const combinedData = { ...(data.sample_row_data || {}) };
+
+  // Add global attribute values from parsed JSON
+  if (data.parsed_attributes && Array.isArray(data.parsed_attributes)) {
+    data.parsed_attributes.forEach(attr => {
+      if (data.smart_mode && attr.options) {
+        // Smart mode: add each option's value by its path
+        attr.options.forEach(option => {
+          if (option.path && option.value !== undefined) {
+            combinedData[option.path] = option.value;
+          }
+        });
+      } else if (attr.path && attr.value !== undefined) {
+        // Basic mode: add attribute value by its path
+        combinedData[attr.path] = attr.value;
+      }
+    });
+  }
+
+  const generatedXML = generateCreatePositionXML(data, combinedData);
   const postmanInstructions = generatePostmanInstructions();
 
   const handleCopy = () => {
@@ -200,7 +220,7 @@ function XMLPreview({ data }) {
           <Code className="w-5 h-5 text-blue-600" />
           <div className="text-left">
             <h3 className="font-semibold text-gray-900">SOAP XML for Postman Testing</h3>
-            <p className="text-sm text-gray-600">Preview generated from first row of uploaded file</p>
+            <p className="text-sm text-gray-600">Ready to execute - populated with actual values from your data</p>
           </div>
         </div>
         <Badge className="bg-blue-600 text-white">
@@ -241,8 +261,9 @@ function XMLPreview({ data }) {
 
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
             <p className="text-xs text-yellow-800">
-              <strong>Note:</strong> Placeholders like {`{{field_name}}`} need to be replaced with actual values.
-              Fields marked as {`{{ISU_USERNAME}}`} and {`{{ISU_PASSWORD}}`} should be replaced with your Workday credentials.
+              <strong>Note:</strong> This XML is populated with actual values from your first row of data and global attributes.
+              Only {`{{ISU_USERNAME}}`} and {`{{ISU_PASSWORD}}`} need to be replaced with your Workday credentials.
+              Any remaining {`{{placeholders}}`} indicate unmapped fields.
             </p>
           </div>
         </div>

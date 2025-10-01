@@ -63,9 +63,9 @@ export default function Layout({ children, currentPageName }) {
           <SidebarHeader className="p-6 pb-8 flex-shrink-0">
             <div className="flex items-center justify-center">
               <img
-                src="/Assets/CroppedAndTransparent.png"
+                src="/Assets/STITCH_CVA.png"
                 alt="Stitch"
-                className="h-24 w-auto object-contain"
+                className="w-48 h-auto object-contain"
               />
             </div>
           </SidebarHeader>
@@ -121,7 +121,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="flex items-center gap-4">
               <SidebarTrigger className="hover:bg-soft-gray p-2 rounded-lg transition-colors duration-200 text-primary-dark-blue" />
               <img
-                src="/Assets/CroppedAndTransparent.png"
+                src="/Assets/STITCH_CVA.png"
                 alt="Stitch"
                 className="h-8 w-auto object-contain"
               />

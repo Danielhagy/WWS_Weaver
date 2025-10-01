@@ -4,7 +4,7 @@
 export const WORKDAY_SERVICES = [
   {
     value: "Create_Position",
-    label: "Create Position (Put Position)",
+    label: "Create Position",
     description: "Create new positions in your organizational structure",
     category: "Staffing",
     version: "v44.2",

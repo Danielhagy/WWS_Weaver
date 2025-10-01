@@ -14,6 +14,9 @@ import { DYNAMIC_FUNCTIONS } from '@/config/putPositionFields';
 export function generateCreatePositionXML(data, sampleData = {}) {
   const { field_mappings = [] } = data;
 
+  console.log('[XML Generator] Sample data received:', sampleData);
+  console.log('[XML Generator] Field mappings:', field_mappings);
+
   // Helper to get value for a field
   const getValue = (mapping) => {
     if (mapping.source_type === 'hardcoded') {
@@ -24,8 +27,10 @@ export function generateCreatePositionXML(data, sampleData = {}) {
       const func = DYNAMIC_FUNCTIONS.find(f => f.id === mapping.source_value);
       return func ? func.execute() : `{{${mapping.source_value}}}`;
     }
-    if (mapping.source_type === 'file_column') {
-      return sampleData[mapping.source_value] || `{{${mapping.source_value}}}`;
+    if (mapping.source_type === 'file_column' || mapping.source_type === 'global_attribute') {
+      const value = sampleData[mapping.source_value];
+      console.log(`[XML Generator] Looking up '${mapping.source_value}' for field '${mapping.target_field}':`, value);
+      return value || `{{${mapping.source_value}}}`;
     }
     return '';
   };
@@ -73,12 +78,12 @@ export function generateCreatePositionXML(data, sampleData = {}) {
 function generateBusinessProcessParameters(fields) {
   let xml = '<bsvc:Business_Process_Parameters>';
 
-  // Auto_Complete - default to true if not specified
-  const autoComplete = fields.Auto_Complete !== undefined ? fields.Auto_Complete : 'true';
+  // Auto Complete - default to true if not specified
+  const autoComplete = fields['Auto Complete'] !== undefined ? fields['Auto Complete'] : 'true';
   xml += `\n        <bsvc:Auto_Complete>${escapeXml(autoComplete)}</bsvc:Auto_Complete>`;
 
-  // Run_Now - default to true if not specified
-  const runNow = fields.Run_Now !== undefined ? fields.Run_Now : 'true';
+  // Run Now - default to true if not specified
+  const runNow = fields['Run Now'] !== undefined ? fields['Run Now'] : 'true';
   xml += `\n        <bsvc:Run_Now>${escapeXml(runNow)}</bsvc:Run_Now>`;
 
   // Comment - optional
@@ -93,8 +98,8 @@ function generateBusinessProcessParameters(fields) {
 }
 
 function generateSupervisoryOrgReference(fields, types) {
-  const orgId = fields.Supervisory_Organization_ID;
-  const orgType = types.Supervisory_Organization_ID || 'Organization_Reference_ID';
+  const orgId = fields['Supervisory Organization ID'];
+  const orgType = types['Supervisory Organization ID'] || 'Organization_Reference_ID';
 
   if (!orgId) {
     return `<!-- Supervisory_Organization_Reference REQUIRED but not mapped -->`;
@@ -109,28 +114,28 @@ function generatePositionData(fields, types) {
   let xml = '<bsvc:Position_Data>';
 
   // Optional fields
-  if (fields.Position_ID) {
-    xml += `\n          <bsvc:Position_ID>${escapeXml(fields.Position_ID)}</bsvc:Position_ID>`;
+  if (fields['Position ID']) {
+    xml += `\n          <bsvc:Position_ID>${escapeXml(fields['Position ID'])}</bsvc:Position_ID>`;
   }
-  if (fields.Job_Posting_Title) {
-    xml += `\n          <bsvc:Job_Posting_Title>${escapeXml(fields.Job_Posting_Title)}</bsvc:Job_Posting_Title>`;
+  if (fields['Job Posting Title']) {
+    xml += `\n          <bsvc:Job_Posting_Title>${escapeXml(fields['Job Posting Title'])}</bsvc:Job_Posting_Title>`;
   }
-  if (fields.Job_Description_Summary) {
-    xml += `\n          <bsvc:Job_Description_Summary>${escapeXml(fields.Job_Description_Summary)}</bsvc:Job_Description_Summary>`;
+  if (fields['Job Description Summary']) {
+    xml += `\n          <bsvc:Job_Description_Summary>${escapeXml(fields['Job Description Summary'])}</bsvc:Job_Description_Summary>`;
   }
-  if (fields.Job_Description) {
-    xml += `\n          <bsvc:Job_Description>${escapeXml(fields.Job_Description)}</bsvc:Job_Description>`;
+  if (fields['Job Description']) {
+    xml += `\n          <bsvc:Job_Description>${escapeXml(fields['Job Description'])}</bsvc:Job_Description>`;
   }
-  if (fields.Critical_Job) {
-    xml += `\n          <bsvc:Critical_Job>${escapeXml(fields.Critical_Job)}</bsvc:Critical_Job>`;
+  if (fields['Critical Job']) {
+    xml += `\n          <bsvc:Critical_Job>${escapeXml(fields['Critical Job'])}</bsvc:Critical_Job>`;
   }
-  if (fields.Available_for_Overlap) {
-    xml += `\n          <bsvc:Available_for_Overlap>${escapeXml(fields.Available_for_Overlap)}</bsvc:Available_for_Overlap>`;
+  if (fields['Available for Overlap']) {
+    xml += `\n          <bsvc:Available_for_Overlap>${escapeXml(fields['Available for Overlap'])}</bsvc:Available_for_Overlap>`;
   }
-  if (fields.Difficulty_to_Fill_ID) {
-    const diffType = types.Difficulty_to_Fill_ID || 'Difficulty_to_Fill_ID';
+  if (fields['Difficulty to Fill ID']) {
+    const diffType = types['Difficulty to Fill ID'] || 'Difficulty_to_Fill_ID';
     xml += `\n          <bsvc:Difficulty_to_Fill_Reference>`;
-    xml += `\n            <bsvc:ID bsvc:type="${escapeXml(diffType)}">${escapeXml(fields.Difficulty_to_Fill_ID)}</bsvc:ID>`;
+    xml += `\n            <bsvc:ID bsvc:type="${escapeXml(diffType)}">${escapeXml(fields['Difficulty to Fill ID'])}</bsvc:ID>`;
     xml += `\n          </bsvc:Difficulty_to_Fill_Reference>`;
   }
 
@@ -144,57 +149,57 @@ function generatePositionGroupRestrictions(fields, types) {
   let workingHoursData = '';
 
   // Position_Group_Restrictions_Data fields
-  if (fields.Availability_Date) {
-    restrictionsData += `\n          <bsvc:Availability_Date>${escapeXml(fields.Availability_Date)}</bsvc:Availability_Date>`;
+  if (fields['Availability Date']) {
+    restrictionsData += `\n          <bsvc:Availability_Date>${escapeXml(fields['Availability Date'])}</bsvc:Availability_Date>`;
   }
-  if (fields.Earliest_Hire_Date) {
-    restrictionsData += `\n          <bsvc:Earliest_Hire_Date>${escapeXml(fields.Earliest_Hire_Date)}</bsvc:Earliest_Hire_Date>`;
+  if (fields['Earliest Hire Date']) {
+    restrictionsData += `\n          <bsvc:Earliest_Hire_Date>${escapeXml(fields['Earliest Hire Date'])}</bsvc:Earliest_Hire_Date>`;
   }
-  if (fields.Job_Family_ID) {
-    const jobFamilyType = types.Job_Family_ID || 'Job_Family_ID';
+  if (fields['Job Family ID']) {
+    const jobFamilyType = types['Job Family ID'] || 'Job_Family_ID';
     restrictionsData += `\n          <bsvc:Job_Family_Reference>`;
-    restrictionsData += `\n            <bsvc:ID bsvc:type="${escapeXml(jobFamilyType)}">${escapeXml(fields.Job_Family_ID)}</bsvc:ID>`;
+    restrictionsData += `\n            <bsvc:ID bsvc:type="${escapeXml(jobFamilyType)}">${escapeXml(fields['Job Family ID'])}</bsvc:ID>`;
     restrictionsData += `\n          </bsvc:Job_Family_Reference>`;
   }
-  if (fields.Job_Profile_ID) {
-    const jobProfileType = types.Job_Profile_ID || 'Job_Profile_ID';
+  if (fields['Job Profile ID']) {
+    const jobProfileType = types['Job Profile ID'] || 'Job_Profile_ID';
     restrictionsData += `\n          <bsvc:Job_Profile_Reference>`;
-    restrictionsData += `\n            <bsvc:ID bsvc:type="${escapeXml(jobProfileType)}">${escapeXml(fields.Job_Profile_ID)}</bsvc:ID>`;
+    restrictionsData += `\n            <bsvc:ID bsvc:type="${escapeXml(jobProfileType)}">${escapeXml(fields['Job Profile ID'])}</bsvc:ID>`;
     restrictionsData += `\n          </bsvc:Job_Profile_Reference>`;
   }
-  if (fields.Location_ID) {
-    const locationType = types.Location_ID || 'Location_ID';
+  if (fields['Location ID']) {
+    const locationType = types['Location ID'] || 'Location_ID';
     restrictionsData += `\n          <bsvc:Location_Reference>`;
-    restrictionsData += `\n            <bsvc:ID bsvc:type="${escapeXml(locationType)}">${escapeXml(fields.Location_ID)}</bsvc:ID>`;
+    restrictionsData += `\n            <bsvc:ID bsvc:type="${escapeXml(locationType)}">${escapeXml(fields['Location ID'])}</bsvc:ID>`;
     restrictionsData += `\n          </bsvc:Location_Reference>`;
   }
-  if (fields.Worker_Type_ID) {
-    const workerType = types.Worker_Type_ID || 'Worker_Type_ID';
+  if (fields['Worker Type ID']) {
+    const workerType = types['Worker Type ID'] || 'Worker_Type_ID';
     restrictionsData += `\n          <bsvc:Worker_Type_Reference>`;
-    restrictionsData += `\n            <bsvc:ID bsvc:type="${escapeXml(workerType)}">${escapeXml(fields.Worker_Type_ID)}</bsvc:ID>`;
+    restrictionsData += `\n            <bsvc:ID bsvc:type="${escapeXml(workerType)}">${escapeXml(fields['Worker Type ID'])}</bsvc:ID>`;
     restrictionsData += `\n          </bsvc:Worker_Type_Reference>`;
   }
-  if (fields.Time_Type_ID) {
-    const timeType = types.Time_Type_ID || 'Position_Time_Type_ID';
+  if (fields['Time Type ID']) {
+    const timeType = types['Time Type ID'] || 'Position_Time_Type_ID';
     restrictionsData += `\n          <bsvc:Time_Type_Reference>`;
-    restrictionsData += `\n            <bsvc:ID bsvc:type="${escapeXml(timeType)}">${escapeXml(fields.Time_Type_ID)}</bsvc:ID>`;
+    restrictionsData += `\n            <bsvc:ID bsvc:type="${escapeXml(timeType)}">${escapeXml(fields['Time Type ID'])}</bsvc:ID>`;
     restrictionsData += `\n          </bsvc:Time_Type_Reference>`;
   }
-  if (fields.Position_Worker_Type_ID) {
-    const posWorkerType = types.Position_Worker_Type_ID || 'WID';
+  if (fields['Position Worker Type ID']) {
+    const posWorkerType = types['Position Worker Type ID'] || 'WID';
     restrictionsData += `\n          <bsvc:Position_Worker_Type_Reference>`;
-    restrictionsData += `\n            <bsvc:ID bsvc:type="${escapeXml(posWorkerType)}">${escapeXml(fields.Position_Worker_Type_ID)}</bsvc:ID>`;
+    restrictionsData += `\n            <bsvc:ID bsvc:type="${escapeXml(posWorkerType)}">${escapeXml(fields['Position Worker Type ID'])}</bsvc:ID>`;
     restrictionsData += `\n          </bsvc:Position_Worker_Type_Reference>`;
   }
 
   // Working Hours Data
-  if (fields.Default_Hours || fields.Scheduled_Hours) {
+  if (fields['Default Hours'] || fields['Scheduled Hours']) {
     workingHoursData += `\n        <bsvc:Position_Restriction_Working_Hours_Details_Data>`;
-    if (fields.Default_Hours) {
-      workingHoursData += `\n          <bsvc:Default_Hours>${escapeXml(fields.Default_Hours)}</bsvc:Default_Hours>`;
+    if (fields['Default Hours']) {
+      workingHoursData += `\n          <bsvc:Default_Hours>${escapeXml(fields['Default Hours'])}</bsvc:Default_Hours>`;
     }
-    if (fields.Scheduled_Hours) {
-      workingHoursData += `\n          <bsvc:Scheduled_Hours>${escapeXml(fields.Scheduled_Hours)}</bsvc:Scheduled_Hours>`;
+    if (fields['Scheduled Hours']) {
+      workingHoursData += `\n          <bsvc:Scheduled_Hours>${escapeXml(fields['Scheduled Hours'])}</bsvc:Scheduled_Hours>`;
     }
     workingHoursData += `\n        </bsvc:Position_Restriction_Working_Hours_Details_Data>`;
   }
@@ -237,10 +242,10 @@ function generatePositionOrganizationAssignments(fields, types) {
 }
 
 function generatePositionRequestReason(fields, types) {
-  if (fields.Position_Request_Reason_ID) {
-    const reasonType = types.Position_Request_Reason_ID || 'Position_Request_Reason_ID';
+  if (fields['Position Request Reason ID']) {
+    const reasonType = types['Position Request Reason ID'] || 'Position_Request_Reason_ID';
     return `\n        <bsvc:Position_Request_Reason_Reference>
-          <bsvc:ID bsvc:type="${escapeXml(reasonType)}">${escapeXml(fields.Position_Request_Reason_ID)}</bsvc:ID>
+          <bsvc:ID bsvc:type="${escapeXml(reasonType)}">${escapeXml(fields['Position Request Reason ID'])}</bsvc:ID>
         </bsvc:Position_Request_Reason_Reference>`;
   }
   return '';

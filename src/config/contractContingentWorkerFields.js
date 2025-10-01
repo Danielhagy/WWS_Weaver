@@ -6,7 +6,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
   // === REQUIRED FIELDS ===
 
   {
-    name: "Contract_Start_Date",
+    name: "Contract Start Date",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Start_Date",
     required: true,
     type: "date",
@@ -18,7 +18,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
   // === WORKER IDENTIFICATION (CHOICE: must provide one) ===
 
   {
-    name: "Applicant_ID",
+    name: "Applicant ID",
     xmlPath: "Contract_Contingent_Worker_Data.Applicant_Reference.ID",
     required: false, // One of the worker identification methods is required
     type: "text_with_type",
@@ -29,7 +29,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Use this if contracting an applicant from your talent pool"
   },
   {
-    name: "Former_Worker_ID",
+    name: "Former Worker ID",
     xmlPath: "Contract_Contingent_Worker_Data.Former_Worker_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -40,7 +40,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Use this to rehire a former worker as a contingent worker"
   },
   {
-    name: "First_Name",
+    name: "First Name",
     xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Name_Data.Legal_Name_Data.First_Name",
     required: false,
     type: "text",
@@ -49,7 +49,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Required if creating a new applicant record"
   },
   {
-    name: "Last_Name",
+    name: "Last Name",
     xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Name_Data.Legal_Name_Data.Last_Name",
     required: false,
     type: "text",
@@ -61,7 +61,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
   // === POSITION/CONTRACT EVENT DATA ===
 
   {
-    name: "Contingent_Worker_ID",
+    name: "Contingent Worker ID",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Contingent_Worker_ID",
     required: false,
     type: "text",
@@ -70,7 +70,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Optional: Leave blank for Workday to auto-generate"
   },
   {
-    name: "Position_ID",
+    name: "Position ID",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_ID",
     required: false,
     type: "text",
@@ -79,7 +79,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Optional: Specify a position ID or use Position_Reference"
   },
   {
-    name: "Position_Reference_ID",
+    name: "Position Reference ID",
     xmlPath: "Contract_Contingent_Worker_Data.Position_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -90,7 +90,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Link this contract to an existing open position"
   },
   {
-    name: "Contract_End_Date",
+    name: "Contract End Date",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Contract_End_Date",
     required: false,
     type: "date",
@@ -99,7 +99,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Optional: End date in YYYY-MM-DD format"
   },
   {
-    name: "First_Day_of_Work",
+    name: "First Day of Work",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.First_Day_of_Work",
     required: false,
     type: "date",
@@ -108,7 +108,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Optional: First work date in YYYY-MM-DD format (may differ from contract start)"
   },
   {
-    name: "Contract_Worker_Reason_ID",
+    name: "Contract Worker Reason ID",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Contract_Worker_Reason_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -119,7 +119,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Optional: Reason code (e.g., Temporary_Replacement, Project_Work)"
   },
   {
-    name: "Contract_Worker_Type_ID",
+    name: "Contract Worker Type ID",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Contract_Worker_Type_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -130,7 +130,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Optional: Worker type (e.g., Contractor, Consultant, Temporary)"
   },
   {
-    name: "Create_Purchase_Order",
+    name: "Create Purchase Order",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Create_Purchase_Order",
     required: false,
     type: "boolean",
@@ -143,7 +143,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
   // === POSITION DETAILS (Required Container) ===
 
   {
-    name: "Position_Title",
+    name: "Position Title",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Position_Title",
     required: false,
     type: "text",
@@ -152,7 +152,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Optional: Job title (e.g., 'Senior Consultant')"
   },
   {
-    name: "Business_Title",
+    name: "Business Title",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Business_Title",
     required: false,
     type: "text",
@@ -161,7 +161,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Optional: Alternative or business-facing title"
   },
   {
-    name: "Job_Profile_ID",
+    name: "Job Profile ID",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Job_Profile_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -172,7 +172,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Optional: Link to job profile template"
   },
   {
-    name: "Location_ID",
+    name: "Location ID",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Location_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -183,7 +183,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Optional: Workday location for the worker"
   },
   {
-    name: "Default_Hours",
+    name: "Default Hours",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Default_Hours",
     required: false,
     type: "number",
@@ -192,7 +192,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     helpText: "Optional: Standard hours per week (e.g., 40.00)"
   },
   {
-    name: "Scheduled_Hours",
+    name: "Scheduled Hours",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Scheduled_Hours",
     required: false,
     type: "number",
@@ -204,7 +204,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
   // === ORGANIZATION ASSIGNMENT ===
 
   {
-    name: "Organization_ID",
+    name: "Organization ID",
     xmlPath: "Contract_Contingent_Worker_Data.Organization_Reference.ID",
     required: false,
     type: "text_with_type",
@@ -218,7 +218,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
   // === BUSINESS PROCESS PARAMETERS ===
 
   {
-    name: "Auto_Complete",
+    name: "Auto Complete",
     xmlPath: "Business_Process_Parameters.Auto_Complete",
     required: false,
     type: "boolean",
@@ -228,7 +228,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     defaultValue: false
   },
   {
-    name: "Run_Now",
+    name: "Run Now",
     xmlPath: "Business_Process_Parameters.Run_Now",
     required: false,
     type: "boolean",
