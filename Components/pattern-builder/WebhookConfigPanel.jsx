@@ -1,16 +1,35 @@
-import React, { useState, useRef } from 'react'
-import { X, Webhook, FileUp, Code, Upload, CheckCircle2, AlertCircle } from 'lucide-react'
+import React, { useState, useRef, useEffect } from 'react'
+import { X, Webhook, FileUp, Code, Upload, CheckCircle2, AlertCircle, Layers } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Integration } from '@/entities/Integration'
 import * as XLSX from 'xlsx'
 
-export default function WebhookConfigPanel({ webhookConfig, isOpen, onClose, onUpdate }) {
+export default function WebhookConfigPanel({ webhookConfig, isOpen, onClose, onUpdate, onUseExistingStitch }) {
   const [localConfig, setLocalConfig] = useState(webhookConfig || { type: null, data: null })
   const [uploadStatus, setUploadStatus] = useState(null)
+  const [existingStitches, setExistingStitches] = useState([])
   const fileInputRef = useRef(null)
+
+  useEffect(() => {
+    if (isOpen) {
+      loadExistingStitches()
+    }
+  }, [isOpen])
+
+  const loadExistingStitches = async () => {
+    try {
+      const stitches = await Integration.list()
+      setExistingStitches(stitches || [])
+    } catch (error) {
+      console.error('Error loading stitches:', error)
+      setExistingStitches([])
+    }
+  }
 
   const handleTypeSelect = (type) => {
     setLocalConfig({ ...localConfig, type, data: null, fileName: null, columns: [] })
@@ -92,6 +111,14 @@ export default function WebhookConfigPanel({ webhookConfig, isOpen, onClose, onU
     }
   }
 
+  const handleUseExistingStitch = (stitchId) => {
+    const stitch = existingStitches.find(s => s.id === stitchId)
+    if (stitch && onUseExistingStitch) {
+      onUseExistingStitch(stitch)
+      onClose()
+    }
+  }
+
   const handleSave = () => {
     onUpdate(localConfig)
     onClose()
@@ -138,7 +165,7 @@ export default function WebhookConfigPanel({ webhookConfig, isOpen, onClose, onU
           {/* Type Selection */}
           <div className="space-y-3">
             <Label className="text-base font-semibold">Webhook Input Type</Label>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               {/* File Upload Option */}
               <Card
                 className={`p-4 cursor-pointer transition-all ${
@@ -202,8 +229,100 @@ export default function WebhookConfigPanel({ webhookConfig, isOpen, onClose, onU
                   </div>
                 </div>
               </Card>
+
+              {/* Use Existing Stitch Option */}
+              <Card
+                className={`p-4 cursor-pointer transition-all ${
+                  localConfig.type === 'existing_stitch'
+                    ? 'border-2 border-accent-teal bg-accent-teal/5'
+                    : 'border-2 border-soft-gray hover:border-accent-teal/50'
+                }`}
+                onClick={() => handleTypeSelect('existing_stitch')}
+                data-testid="webhook-type-existing"
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    localConfig.type === 'existing_stitch' ? 'bg-accent-teal' : 'bg-soft-gray'
+                  }`}>
+                    <Layers className={`w-5 h-5 ${
+                      localConfig.type === 'existing_stitch' ? 'text-white' : 'text-muted-foreground'
+                    }`} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-primary-dark-blue flex items-center gap-2">
+                      Use Stitch Config
+                      {localConfig.type === 'existing_stitch' && localConfig.selectedStitchId && (
+                        <CheckCircle2 className="w-4 h-4 text-accent-teal" />
+                      )}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Reuse existing stitch as Step 1
+                    </p>
+                  </div>
+                </div>
+              </Card>
             </div>
           </div>
+
+          {/* Existing Stitch Selection */}
+          {localConfig.type === 'existing_stitch' && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Select Existing Stitch</Label>
+                <p className="text-sm text-muted-foreground">
+                  Choose a stitch to use its webhook configuration and create it as Step 1
+                </p>
+                <Select
+                  value={localConfig.selectedStitchId || ''}
+                  onValueChange={(value) => {
+                    setLocalConfig({ ...localConfig, selectedStitchId: value })
+                    handleUseExistingStitch(value)
+                  }}
+                >
+                  <SelectTrigger data-testid="existing-stitch-select">
+                    <SelectValue placeholder="Choose a stitch..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {existingStitches.length === 0 ? (
+                      <SelectItem value="none" disabled>No stitches available</SelectItem>
+                    ) : (
+                      existingStitches.map((stitch) => (
+                        <SelectItem key={stitch.id} value={stitch.id}>
+                          {stitch.name} ({stitch.workday_service})
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {localConfig.selectedStitchId && existingStitches.find(s => s.id === localConfig.selectedStitchId) && (
+                <Card className="p-4 bg-gradient-to-br from-accent-teal/5 to-white border-accent-teal/30">
+                  {(() => {
+                    const stitch = existingStitches.find(s => s.id === localConfig.selectedStitchId)
+                    return (
+                      <>
+                        <div className="flex items-center gap-2 mb-3">
+                          <CheckCircle2 className="w-5 h-5 text-accent-teal" />
+                          <h4 className="font-semibold text-primary-dark-blue">
+                            Will Create Step 1
+                          </h4>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <p><strong>Name:</strong> {stitch.name}</p>
+                          <p><strong>Service:</strong> {stitch.workday_service}</p>
+                          <p><strong>Mappings:</strong> {stitch.field_mappings?.length || 0} configured</p>
+                          {stitch.sample_file_headers && stitch.sample_file_headers.length > 0 && (
+                            <p><strong>Columns:</strong> {stitch.sample_file_headers.length} available</p>
+                          )}
+                        </div>
+                      </>
+                    )
+                  })()}
+                </Card>
+              )}
+            </div>
+          )}
 
           {/* File Upload Configuration */}
           {localConfig.type === 'file' && (

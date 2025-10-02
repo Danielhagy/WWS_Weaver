@@ -18,6 +18,11 @@ const INITIAL_INTEGRATIONS = [
       { source_field: 'email', target_field: 'Email', transformation: 'lowercase' },
       { source_field: 'birth_date', target_field: 'Date_of_Birth', transformation: 'format-date' }
     ],
+    sample_file_headers: ['emp_id', 'first_name', 'last_name', 'email', 'birth_date'],
+    parsed_attributes: [
+      { value: 'company_code', label: 'company_code', scope: 'global' },
+      { value: 'department', label: 'department', scope: 'global' }
+    ],
     validation_enabled: true,
     webhook_url: 'https://api.workdayweaver.com/webhooks/int-001',
     created_date: '2025-09-15T10:30:00Z',
@@ -34,6 +39,10 @@ const INITIAL_INTEGRATIONS = [
       { source_field: 'start', target_field: 'Start_Date', transformation: 'format-date' },
       { source_field: 'end', target_field: 'End_Date', transformation: 'format-date' },
       { source_field: 'type', target_field: 'Time_Off_Type', transformation: 'none' }
+    ],
+    sample_file_headers: ['employee_id', 'start', 'end', 'type'],
+    parsed_attributes: [
+      { value: 'approver_email', label: 'approver_email', scope: 'global' }
     ],
     validation_enabled: false,
     webhook_url: 'https://api.workdayweaver.com/webhooks/int-002',

@@ -1,27 +1,37 @@
-import React from 'react'
-import { Settings, Trash2, CheckCircle2, AlertCircle, Zap } from 'lucide-react'
+import React, { useState } from 'react'
+import { Settings, Trash2, CheckCircle2, AlertCircle, Zap, GripVertical } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
-export default function StepBlock({ step, isSelected, onClick, onDelete, previousSteps }) {
+export default function StepBlock({ step, isSelected, onClick, onDelete, previousSteps, onDragStart, onDragEnd, onDragOver, onDrop, isDragging }) {
   const isConfigured = step.webService !== null || step.existingStitchId !== null
   const hasMappings = step.mappings && step.mappings.length > 0
   const hasGoldenThreads = previousSteps.length > 0
 
   return (
     <Card
-      className={`p-5 border-2 transition-all duration-200 cursor-pointer group hover:shadow-lg ${
+      className={`p-5 border-2 transition-all duration-200 cursor-move group hover:shadow-lg ${
         isSelected
           ? 'border-accent-teal bg-accent-teal/5 shadow-lg ring-2 ring-accent-teal/20'
           : isConfigured
           ? 'border-green-500/30 bg-white hover:border-accent-teal/50'
           : 'border-dashed border-soft-gray hover:border-accent-teal/50 bg-white'
-      }`}
+      } ${isDragging ? 'opacity-50 scale-95' : ''}`}
       onClick={onClick}
+      draggable
+      onDragStart={(e) => onDragStart(e, step)}
+      onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      onDrop={(e) => onDrop(e, step)}
       data-testid={`step-block-${step.id}`}
     >
       <div className="flex items-center gap-4">
+        {/* Drag Handle */}
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+          <GripVertical className="w-5 h-5 text-muted-foreground" />
+        </div>
+
         {/* Step Number Badge */}
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-lg shadow-md transition-all ${
           isSelected

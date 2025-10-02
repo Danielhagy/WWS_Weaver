@@ -6,12 +6,68 @@ import StepBlock from './StepBlock'
 import StepConfigPanel from './StepConfigPanel'
 import TriggerBlock from './TriggerBlock'
 import WebhookConfigPanel from './WebhookConfigPanel'
+import DropZone from './DropZone'
 
 export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWebhookConfig }) {
   const [selectedStepId, setSelectedStepId] = useState(null)
   const [configPanelOpen, setConfigPanelOpen] = useState(false)
   const [webhookConfigOpen, setWebhookConfigOpen] = useState(false)
   const [isConfigExpanded, setIsConfigExpanded] = useState(false)
+  const [draggedStep, setDraggedStep] = useState(null)
+  const [activeDropZone, setActiveDropZone] = useState(null) // Track which drop zone is active
+
+  // Helper function to convert legacy field_mappings to new mapping format
+  const convertLegacyMappings = (fieldMappings) => {
+    if (!fieldMappings || fieldMappings.length === 0) return []
+
+    return fieldMappings.map(mapping => {
+      // If it's already in the new format, return as-is
+      if (mapping.sourceType) {
+        return mapping
+      }
+
+      // Convert from legacy format
+      return {
+        targetField: mapping.target_field,
+        sourceType: 'existing_attribute',
+        sourceLocation: 'webhook',
+        sourceField: mapping.source_field,
+        transformation: mapping.transformation
+      }
+    })
+  }
+
+  const handleUseExistingStitch = (stitch) => {
+    // Set webhook config from stitch
+    const newWebhookConfig = {
+      type: stitch.parsed_attributes?.length > 0 ? 'json' : 'file',
+      columns: stitch.sample_file_headers || [],
+      attributes: stitch.parsed_attributes || [],
+      fileName: stitch.sample_file_name || stitch.name
+    }
+    setWebhookConfig(newWebhookConfig)
+
+    // Create Step 1 with the existing stitch configuration
+    const convertedMappings = convertLegacyMappings(stitch.field_mappings || [])
+    const newStep = {
+      id: `step-${Date.now()}`,
+      order: 1,
+      name: stitch.name,
+      webService: stitch.workday_service,
+      stepType: 'existing',
+      existingStitchId: stitch.id,
+      mappings: convertedMappings,
+      testResults: null
+    }
+
+    // If there are existing steps, increment their order
+    const updatedSteps = steps.map(step => ({
+      ...step,
+      order: step.order + 1
+    }))
+
+    setSteps([newStep, ...updatedSteps])
+  }
 
   const handleAddStep = () => {
     const newStep = {
@@ -53,6 +109,87 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
     if (selectedStepId === stepId) {
       handleConfigClose()
     }
+  }
+
+  // Drag and drop handlers
+  const handleDragStart = (e, step) => {
+    setDraggedStep(step)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/html', e.target)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedStep(null)
+    setActiveDropZone(null)
+  }
+
+  // Drop zone handlers
+  const handleDropZoneDragOver = (e, position) => {
+    if (!draggedStep) return
+    e.preventDefault()
+    e.stopPropagation()
+    e.dataTransfer.dropEffect = 'move'
+
+    // Only update if different to prevent unnecessary re-renders
+    if (activeDropZone !== position) {
+      setActiveDropZone(position)
+    }
+  }
+
+  const handleDropZoneDragLeave = (e) => {
+    // Don't clear immediately - let dragOver of next zone handle it
+    // This prevents flashing when moving between zones
+  }
+
+  const handleDropZoneDrop = (e, insertBeforeIndex) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!draggedStep) {
+      setActiveDropZone(null)
+      return
+    }
+
+    // Find current index of dragged step
+    const draggedIndex = steps.findIndex(s => s.id === draggedStep.id)
+
+    // If dropping in same position, do nothing
+    if (draggedIndex === insertBeforeIndex || draggedIndex === insertBeforeIndex - 1) {
+      setDraggedStep(null)
+      setActiveDropZone(null)
+      return
+    }
+
+    // Create new array without the dragged step
+    const newSteps = steps.filter(s => s.id !== draggedStep.id)
+
+    // Calculate actual insert position (adjust if dragged from before insert position)
+    const adjustedInsertIndex = draggedIndex < insertBeforeIndex ? insertBeforeIndex - 1 : insertBeforeIndex
+
+    // Insert at new position
+    newSteps.splice(adjustedInsertIndex, 0, draggedStep)
+
+    // Update order numbers
+    const reorderedSteps = newSteps.map((step, index) => ({
+      ...step,
+      order: index + 1
+    }))
+
+    setSteps(reorderedSteps)
+    setDraggedStep(null)
+    setActiveDropZone(null)
+  }
+
+  // Prevent step blocks from being drop targets (only drop zones should accept drops)
+  const handleStepDragOver = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleStepDrop = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // Do nothing - drops should only happen on drop zones
   }
 
   const selectedStep = steps.find(step => step.id === selectedStepId)
@@ -105,21 +242,18 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
                 onClick={() => setWebhookConfigOpen(true)}
               />
 
-              {/* Connection Line */}
+              {/* Drop Zone Before First Step */}
               {steps.length > 0 && (
-                <div className="flex justify-center">
-                  <div className="w-0.5 h-12 bg-gradient-to-b from-accent-teal to-accent-teal/50 relative">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-accent-teal animate-pulse" />
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
-                      <svg width="8" height="8" viewBox="0 0 8 8" className="text-accent-teal">
-                        <path d="M4 0 L0 4 L4 8 L8 4 Z" fill="currentColor" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
+                <DropZone
+                  isActive={activeDropZone === 0}
+                  position={0}
+                  onDragOver={(e) => handleDropZoneDragOver(e, 0)}
+                  onDragLeave={handleDropZoneDragLeave}
+                  onDrop={(e) => handleDropZoneDrop(e, 0)}
+                />
               )}
 
-              {/* Step Blocks */}
+              {/* Step Blocks with Drop Zones */}
               {steps.map((step, index) => (
                 <React.Fragment key={step.id}>
                   <StepBlock
@@ -128,18 +262,21 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
                     onClick={() => handleStepClick(step.id)}
                     onDelete={() => handleDeleteStep(step.id)}
                     previousSteps={steps.slice(0, index)}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={handleStepDragOver}
+                    onDrop={handleStepDrop}
+                    isDragging={draggedStep?.id === step.id}
                   />
 
-                  {/* Connection Line to Next Step */}
-                  {index < steps.length - 1 && (
-                    <div className="flex justify-center">
-                      <div className="w-0.5 h-12 bg-gradient-to-b from-accent-teal/50 to-accent-teal/50 relative golden-thread">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                          <div className="w-1 h-1 rounded-full bg-accent-teal animate-pulse" />
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {/* Drop Zone After This Step */}
+                  <DropZone
+                    isActive={activeDropZone === index + 1}
+                    position={index + 1}
+                    onDragOver={(e) => handleDropZoneDragOver(e, index + 1)}
+                    onDragLeave={handleDropZoneDragLeave}
+                    onDrop={(e) => handleDropZoneDrop(e, index + 1)}
+                  />
                 </React.Fragment>
               ))}
 
@@ -183,6 +320,7 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
         isOpen={webhookConfigOpen}
         onClose={() => setWebhookConfigOpen(false)}
         onUpdate={setWebhookConfig}
+        onUseExistingStitch={handleUseExistingStitch}
       />
     </div>
   )

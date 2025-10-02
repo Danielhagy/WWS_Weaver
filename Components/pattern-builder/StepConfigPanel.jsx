@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { X, Settings, FlaskConical, Save, Zap, FileText, Layers, ExternalLink } from 'lucide-react'
+import { X, Settings, FlaskConical, Save, Zap, FileText, Layers, ExternalLink, Eye, EyeOff } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +17,7 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
   const [stepType, setStepType] = useState(step?.stepType || 'new') // 'new' or 'existing'
   const [existingStitches, setExistingStitches] = useState([])
   const [selectedStitch, setSelectedStitch] = useState(null)
+  const [showStitchConfig, setShowStitchConfig] = useState(false)
 
   // Restore local state when step changes
   React.useEffect(() => {
@@ -29,12 +30,43 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
     }
   }, [step])
 
+  // Helper function to convert legacy field_mappings to new mapping format
+  const convertLegacyMappings = (fieldMappings) => {
+    if (!fieldMappings || fieldMappings.length === 0) return []
+
+    return fieldMappings.map(mapping => {
+      // If it's already in the new format, return as-is
+      if (mapping.sourceType) {
+        return mapping
+      }
+
+      // Convert from legacy format
+      return {
+        targetField: mapping.target_field,
+        sourceType: 'existing_attribute',
+        sourceLocation: 'webhook',
+        sourceField: mapping.source_field,
+        transformation: mapping.transformation
+      }
+    })
+  }
+
   // Restore selected stitch when existingStitches loads or step changes
   React.useEffect(() => {
     if (step?.existingStitchId && existingStitches.length > 0) {
       const stitch = existingStitches.find(s => s.id === step.existingStitchId)
       if (stitch) {
         setSelectedStitch(stitch)
+        // If step doesn't have mappings but stitch does, populate from stitch
+        if (!step.mappings || step.mappings.length === 0) {
+          if (stitch.field_mappings && stitch.field_mappings.length > 0) {
+            const convertedMappings = convertLegacyMappings(stitch.field_mappings)
+            setLocalStep(prev => ({
+              ...prev,
+              mappings: convertedMappings
+            }))
+          }
+        }
       }
     } else if (!step?.existingStitchId) {
       setSelectedStitch(null)
@@ -69,7 +101,18 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
   }
 
   const handleSave = () => {
-    onUpdate(step.id, localStep)
+    // Ensure stepType is persisted when saving
+    const updatedStep = {
+      ...localStep,
+      stepType: stepType
+    }
+    onUpdate(step.id, updatedStep)
+    setShowStitchConfig(false) // Reset on save
+    onClose()
+  }
+
+  const handleCancel = () => {
+    setShowStitchConfig(false) // Reset on cancel
     onClose()
   }
 
@@ -161,8 +204,11 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
               }`}
               onClick={() => {
                 setStepType('new')
-                handleFieldChange('stepType', 'new')
-                handleFieldChange('existingStitchId', null)
+                setLocalStep({ ...localStep, stepType: 'new', existingStitchId: null })
+                setSelectedStitch(null)
+                if (onExpandChange) {
+                  onExpandChange(localStep.webService !== null && localStep.webService !== '')
+                }
               }}
               data-testid="step-type-new"
             >
@@ -186,8 +232,10 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
               }`}
               onClick={() => {
                 setStepType('existing')
-                handleFieldChange('stepType', 'existing')
-                handleFieldChange('webService', null)
+                setLocalStep({ ...localStep, stepType: 'existing', webService: null })
+                if (onExpandChange) {
+                  onExpandChange(false)
+                }
               }}
               data-testid="step-type-existing"
             >
@@ -237,11 +285,16 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
                 onValueChange={(value) => {
                   const stitch = existingStitches.find(s => s.id === value)
                   setSelectedStitch(stitch)
-                  handleFieldChange('existingStitchId', value)
-                  handleFieldChange('webService', stitch?.workday_service || '')
-                  if (stitch?.name) {
-                    handleFieldChange('name', `Use: ${stitch.name}`)
-                  }
+                  const convertedMappings = convertLegacyMappings(stitch?.field_mappings || [])
+                  setLocalStep({
+                    ...localStep,
+                    existingStitchId: value,
+                    webService: stitch?.workday_service || '',
+                    name: stitch?.name ? `Use: ${stitch.name}` : localStep.name,
+                    stepType: 'existing',
+                    mappings: convertedMappings
+                  })
+                  setShowStitchConfig(false) // Reset config visibility when changing stitch
                 }}
               >
                 <SelectTrigger id="existing-stitch">
@@ -272,7 +325,7 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
                 <Card className="p-3 bg-gradient-to-br from-accent-teal/5 to-white border-accent-teal/30">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm font-semibold text-primary-dark-blue">{selectedStitch.name}</p>
                         <p className="text-xs text-muted-foreground">
                           Service: {selectedStitch.workday_service}
@@ -290,7 +343,7 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
                         onClick={() => {
                           navigate(createPageUrl('CreateIntegration') + `?id=${selectedStitch.id}`)
                         }}
-                        className="gap-1 h-8"
+                        className="gap-1 h-8 flex-shrink-0"
                         data-testid="edit-stitch-button"
                       >
                         <ExternalLink className="w-3 h-3" />
@@ -306,16 +359,38 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
                     )}
                   </div>
                 </Card>
-                {/* Test button for existing stitch */}
-                <Button
-                  variant="outline"
-                  className="w-full gap-2 border-accent-teal text-accent-teal hover:bg-accent-teal hover:text-white"
-                  onClick={handleTestStep}
-                  data-testid="test-step-button"
-                >
-                  <FlaskConical className="w-4 h-4" />
-                  Test This Stitch
-                </Button>
+
+                {/* Toggle button to view/edit configuration */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant={showStitchConfig ? "default" : "outline"}
+                    className={`gap-2 ${showStitchConfig ? 'bg-accent-teal text-white hover:bg-accent-teal/90' : 'border-accent-teal text-accent-teal hover:bg-accent-teal/10'}`}
+                    onClick={() => {
+                      const newState = !showStitchConfig
+                      setShowStitchConfig(newState)
+                      if (onExpandChange) {
+                        onExpandChange(newState) // Expand when showing config
+                      }
+                    }}
+                    data-testid="toggle-config-button"
+                  >
+                    {showStitchConfig ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showStitchConfig ? 'Hide Mappings' : 'Change Mappings'}
+                  </Button>
+
+                  {/* Test button for existing stitch */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="gap-2 border-accent-teal text-accent-teal hover:bg-accent-teal hover:text-white"
+                    onClick={handleTestStep}
+                    data-testid="test-step-button"
+                  >
+                    <FlaskConical className="w-4 h-4" />
+                    Test
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -336,17 +411,39 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
         )}
 
         {/* Data Mapping Interface */}
-        {(localStep.webService || localStep.existingStitchId) && (
+        {/* For new web services: always show if webService is selected */}
+        {/* For existing stitches: only show if user clicks "View/Edit Config" */}
+        {((stepType === 'new' && localStep.webService) ||
+          (stepType === 'existing' && localStep.existingStitchId && showStitchConfig)) && (
           <div className="space-y-3">
             <div className="flex items-center gap-2 pt-2">
               <FileText className="w-4 h-4 text-primary-dark-blue" />
-              <Label className="text-base font-semibold">Field Mapping</Label>
+              <Label className="text-base font-semibold">
+                {stepType === 'existing' ? 'Field Mappings (View/Edit)' : 'Field Mapping'}
+              </Label>
             </div>
+            {stepType === 'existing' && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-xs text-blue-800">
+                  <strong>Note:</strong> You're viewing the field mappings and global attributes from the existing stitch.
+                  Any changes here will only affect this pattern step, not the original stitch.
+                </p>
+              </div>
+            )}
             <DataMappingInterface
               step={localStep}
               previousSteps={previousSteps}
               onMappingChange={(mappings) => handleFieldChange('mappings', mappings)}
-              webhookConfig={webhookConfig}
+              webhookConfig={
+                stepType === 'existing' && selectedStitch
+                  ? {
+                      // Create a combined webhookConfig from the selected stitch's data
+                      columns: selectedStitch.sample_file_headers || [],
+                      attributes: selectedStitch.parsed_attributes || [],
+                      type: selectedStitch.parsed_attributes?.length > 0 ? 'json' : 'file'
+                    }
+                  : webhookConfig
+              }
             />
           </div>
         )}
@@ -357,7 +454,7 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={onClose}
+            onClick={handleCancel}
             className="flex-1"
           >
             Cancel
