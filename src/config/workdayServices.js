@@ -1,16 +1,29 @@
-// MVP: Focused on Create Position (Put Position) Web Service
-// Based on Workday Staffing v44.2
+// Workday Web Services Configuration
+// Dynamically supports multiple operations via JSON parsing
 
 export const WORKDAY_SERVICES = [
   {
-    value: "Create_Position",
-    label: "Create Position",
-    description: "Create new positions in your organizational structure",
+    value: "put_position",
+    label: "Create Position (Legacy - v44.2)",
+    description: "Create new positions using v44.2 schema (manual field definitions)",
     category: "Staffing",
     version: "v44.2",
     namespace: "urn:com.workday/bsvc",
     requiresFile: true,
-    fields: [] // Fields are defined in putPositionFields.js
+    fieldConfig: "putPositionFields", // References src/config/putPositionFields.js
+    operationName: "Create_Position"
+  },
+  {
+    value: "create_position",
+    label: "Create Position (Enhanced - v45.0)",
+    description: "Create new positions with dynamically generated fields from SOAP documentation",
+    category: "Staffing",
+    version: "v45.0",
+    namespace: "urn:com.workday/bsvc",
+    requiresFile: true,
+    fieldConfig: "createPositionFields", // References src/config/createPositionFields.js
+    operationName: "Create_Position",
+    jsonSource: "WebserviceOperationJSON/Create_Position Operation Details.json"
   }
 ];
 
