@@ -24,6 +24,18 @@ export const WORKDAY_SERVICES = [
     fieldConfig: "createPositionFields", // References src/config/createPositionFields.js
     operationName: "Create_Position",
     jsonSource: "WebserviceOperationJSON/Create_Position Operation Details.json"
+  },
+  {
+    value: "end_contingent_worker_contract",
+    label: "End Contingent Worker Contract (v45.0)",
+    description: "End a contingent worker's contract using the End Contingent Worker Contract Business Process",
+    category: "Staffing",
+    version: "v45.0",
+    namespace: "urn:com.workday/bsvc",
+    requiresFile: true,
+    fieldConfig: "endContingentWorkerContractFields", // References src/config/endContingentWorkerContractFields.js
+    operationName: "End_Contingent_Worker_Contract",
+    jsonSource: "WebserviceOperationJSON/End_Contingent_Worker_Contract Operation Details.json"
   }
 ];
 
