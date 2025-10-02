@@ -19,10 +19,19 @@ import {
   Globe,
   Sparkles
 } from "lucide-react";
-import { PUT_POSITION_FIELDS, getFieldsByCategory, DYNAMIC_FUNCTIONS, MAPPING_SOURCE_TYPES } from '@/config/putPositionFields';
+import { DYNAMIC_FUNCTIONS, MAPPING_SOURCE_TYPES } from '@/config/putPositionFields';
 import { autoMapFields } from '@/utils/fuzzyMatcher';
 
-export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsChange, isJsonMode = false, parsedAttributes = [], smartMode = false, allSources = [] }) {
+export default function EnhancedFieldMapper({
+  csvHeaders,
+  mappings,
+  onMappingsChange,
+  isJsonMode = false,
+  parsedAttributes = [],
+  smartMode = false,
+  allSources = [],
+  fieldDefinitions = []
+}) {
   const [expandedCategories, setExpandedCategories] = useState({
     "Basic Information": true,
     "Position Details": true,
@@ -31,6 +40,19 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
   });
   const [autoMapStats, setAutoMapStats] = useState(null);
   const [isAutoMapping, setIsAutoMapping] = useState(false);
+
+  // Group fields by category
+  const getFieldsByCategory = () => {
+    const categories = {};
+    fieldDefinitions.forEach(field => {
+      const category = field.category || 'Other';
+      if (!categories[category]) {
+        categories[category] = [];
+      }
+      categories[category].push(field);
+    });
+    return categories;
+  };
 
   const fieldsByCategory = getFieldsByCategory();
 
@@ -44,7 +66,7 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
 
     // Give UI a moment to update
     setTimeout(() => {
-      const result = autoMapFields(PUT_POSITION_FIELDS, fileColumns, globalAttributes, mappings);
+      const result = autoMapFields(fieldDefinitions, fileColumns, globalAttributes, mappings);
       onMappingsChange(result.mappings);
       setAutoMapStats(result.stats);
       setIsAutoMapping(false);
@@ -93,8 +115,8 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
     onMappingsChange(newMappings);
   };
 
-  const requiredFields = PUT_POSITION_FIELDS.filter(f => f.required);
-  const mappedRequiredFields = requiredFields.filter(f => 
+  const requiredFields = fieldDefinitions.filter(f => f.required);
+  const mappedRequiredFields = requiredFields.filter(f =>
     mappings.some(m => m.target_field === f.name && m.source_type !== MAPPING_SOURCE_TYPES.UNMAPPED)
   );
   const allRequiredMapped = mappedRequiredFields.length === requiredFields.length;
@@ -130,11 +152,11 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-900">
-              Mapping Progress: {totalMapped} / {PUT_POSITION_FIELDS.length} fields
+              Mapping Progress: {totalMapped} / {fieldDefinitions.length} fields
             </p>
             <p className="text-xs text-gray-600 mt-1">
               Required: {mappedRequiredFields.length}/{requiredFields.length} •
-              Optional: {totalMapped - mappedRequiredFields.length}/{PUT_POSITION_FIELDS.length - requiredFields.length}
+              Optional: {totalMapped - mappedRequiredFields.length}/{fieldDefinitions.length - requiredFields.length}
             </p>
           </div>
           <div className="flex gap-2 items-center">

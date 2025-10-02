@@ -7,12 +7,21 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, ArrowRight, FileSpreadsheet, FileJson, Upload, ChevronDown, ChevronRight, X, Info } from "lucide-react";
 import { UploadFile } from "@/integrations/Core";
-import { PUT_POSITION_FIELDS } from "@/config/putPositionFields";
-import { CONTRACT_CONTINGENT_WORKER_FIELDS } from "@/config/contractContingentWorkerFields";
+import { WORKDAY_SERVICES } from '@/config/workdayServices';
+import { PUT_POSITION_FIELDS } from '@/config/putPositionFields';
+import { CREATE_POSITION_FIELDS } from '@/config/createPositionFields';
+import { END_CONTINGENT_WORKER_CONTRACT_FIELDS } from '@/config/endContingentWorkerContractFields';
 import * as XLSX from 'xlsx';
 
 import FileUploadZone from "./FileUploadZone.jsx";
 import EnhancedFieldMapper from "./EnhancedFieldMapper.jsx";
+
+// Field configuration registry
+const FIELD_CONFIG_MAP = {
+  'putPositionFields': PUT_POSITION_FIELDS,
+  'createPositionFields': CREATE_POSITION_FIELDS,
+  'endContingentWorkerContractFields': END_CONTINGENT_WORKER_CONTRACT_FIELDS
+};
 
 export default function MappingStep({ data, updateData, nextStep, prevStep }) {
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -25,6 +34,18 @@ export default function MappingStep({ data, updateData, nextStep, prevStep }) {
   const [expandedCategories, setExpandedCategories] = useState({});
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [showJsonInput, setShowJsonInput] = useState(false);
+  const [fieldDefinitions, setFieldDefinitions] = useState([]);
+
+  // Load field configuration based on selected service
+  useEffect(() => {
+    const service = WORKDAY_SERVICES.find(s => s.value === data.workday_service);
+    if (service?.fieldConfig) {
+      const fields = FIELD_CONFIG_MAP[service.fieldConfig] || [];
+      setFieldDefinitions(fields);
+    } else {
+      setFieldDefinitions([]);
+    }
+  }, [data.workday_service]);
 
   // Load existing file info if in edit mode
   useEffect(() => {
@@ -464,7 +485,7 @@ export default function MappingStep({ data, updateData, nextStep, prevStep }) {
   const handleNext = () => {
     // Check if all required fields are mapped
     const requiredFieldsMapped = data.field_mappings?.every(m => {
-      const field = PUT_POSITION_FIELDS.find(f => f.name === m.target_field);
+      const field = fieldDefinitions.find(f => f.name === m.target_field);
       return !field?.required || (m.source_type && m.source_type !== 'unmapped');
     });
 
@@ -480,7 +501,7 @@ export default function MappingStep({ data, updateData, nextStep, prevStep }) {
     if (!data.field_mappings || data.field_mappings.length === 0) return false;
 
     // Check all required fields are mapped
-    const requiredFields = PUT_POSITION_FIELDS.filter(f => f.required);
+    const requiredFields = fieldDefinitions.filter(f => f.required);
     const mappedRequiredFields = requiredFields.filter(f =>
       data.field_mappings.some(m => m.target_field === f.name && m.source_type !== 'unmapped')
     );
@@ -807,6 +828,7 @@ export default function MappingStep({ data, updateData, nextStep, prevStep }) {
           parsedAttributes={parsedAttributes}
           smartMode={data.smart_mode}
           allSources={getAllAvailableSources()}
+          fieldDefinitions={fieldDefinitions}
         />
       )}
 
