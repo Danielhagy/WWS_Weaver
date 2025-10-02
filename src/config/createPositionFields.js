@@ -3,10 +3,11 @@
 // Curated from WebserviceOperationJSON/Create_Position Operation Details.json
 //
 // This configuration provides an enhanced field mapping system with:
-// - Dynamic field generation from SOAP documentation
-// - Better categorization and organization
-// - Improved help text and validation
-// - Support for complex nested structures
+// - 23 carefully selected fields (1 required, 22 optional)
+// - 5 logical categories for better organization
+// - text_with_type support for reference IDs with type dropdowns
+// - Improved help text and validation hints
+// - Support for all field types: text, textarea, boolean, date, number
 
 export const CREATE_POSITION_FIELDS = [
   // ===================================================================

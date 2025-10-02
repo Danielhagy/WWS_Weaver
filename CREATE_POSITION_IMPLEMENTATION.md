@@ -39,9 +39,9 @@ python soap_parser.py "NewWebserviceOps/Create_Position Operation Details.html"
 Created a curated field configuration for Create Position v45.0:
 
 **Statistics:**
-- **Total Fields:** 26
+- **Total Fields:** 23
 - **Required Fields:** 1 (Supervisory Organization ID)
-- **Optional Fields:** 25
+- **Optional Fields:** 22
 - **Categories:** 5
 
 **Categories:**

@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(npx playwright install:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd pattern builder drag-and-drop reordering and webhook stitch configuration\n\nThis update enhances the pattern builder with intuitive step reordering and the ability to create patterns from existing stitch configurations.\n\n**New Features:**\n- Drag-and-drop step reordering with visual drop zones\n- \"Use Stitch Config\" option in webhook trigger to auto-create Step 1 from existing stitch\n- \"Change Mappings\" button to view/edit existing stitch configurations\n- Visual feedback during drag operations (grip handle, drop zones, insertion preview)\n\n**Technical Improvements:**\n- Created DropZone component with smart event handling to prevent flashing\n- Implemented insertion-based reordering (not swapping) with automatic order number updates\n- Added legacy mapping format conversion for backward compatibility\n- Enhanced webhook config to extract columns and attributes from selected stitches\n- Added comprehensive Playwright test suite (31 tests, 100% passing)\n\n**Components Modified:**\n- StepBlock.jsx: Added drag handlers and grip icon\n- StepConfigPanel.jsx: Added mapping conversion and config visibility toggle\n- StitchingCanvas.jsx: Implemented drop zone logic and stitch auto-creation\n- WebhookConfigPanel.jsx: Added third option for existing stitch selection\n- Integration.js: Enhanced mock data with sample headers and attributes\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git config:*)",
+      "Bash(git push:*)",
+      "Bash(python:*)",
+      "Bash(if not exist .vscode mkdir .vscode)",
+      "Bash(git checkout:*)",
+      "Bash(node:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd improved mapping system with dynamic SOAP documentation parsing\n\nThis commit introduces a comprehensive system for dynamically generating field configurations from Workday SOAP documentation, following the MappingInstructions.txt workflow.\n\n**New Features:**\n- soap_parser.py: Python tool to parse Workday HTML documentation into structured JSON\n- WebserviceOperationJSON/: Directory for storing parsed operation schemas\n- createPositionFields.js: Enhanced v45.0 Create Position field configuration (26 fields across 5 categories)\n- MappingInstructions.txt: Complete AI agent guide for extending to any Workday operation\n\n**Technical Improvements:**\n- Parsed Create_Position operation (v45.0) with 458KB JSON schema\n- Extracted 26 curated fields organized into logical categories\n- Support for text_with_type fields (reference IDs with type dropdowns)\n- Enhanced help text and validation hints\n- Cardinality support for repeating fields [0..*]\n- Backward compatibility with v44.2 (putPositionFields.js preserved)\n\n**Field Categories:**\n1. Basic Information (1 required field)\n2. Position Details (7 optional fields)\n3. Position Restrictions (13 optional fields)\n4. Request Information (1 optional field)\n5. Process Options (4 optional fields)\n\n**Files Added:**\n- soap_parser.py: BeautifulSoup4-based HTML→JSON parser\n- NewWebserviceOps/Create_Position Operation Details.html: Source documentation\n- WebserviceOperationJSON/Create_Position Operation Details.json: Parsed schema\n- src/config/createPositionFields.js: Curated field configuration\n- MappingInstructions.txt: 743-line implementation guide\n\n**Files Modified:**\n- src/config/workdayServices.js: Added v45.0 Enhanced Create Position service\n\n**Development Approach:**\nFollowing Phase 1-3 of MappingInstructions.txt:\n- Phase 1: HTML documentation processing via soap_parser.py\n- Phase 2: Field configuration generation with proper categorization\n- Phase 3: Service registry integration with fieldConfig references\n\n**Next Steps:**\n- Phase 4: Dynamic UI field mapping (EnhancedFieldMapper integration)\n- Phase 5: XML generation engine for SOAP requests\n- Phase 6: Validation and error handling\n- Phase 7: End-to-end testing with sample data\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
