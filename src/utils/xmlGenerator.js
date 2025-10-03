@@ -63,13 +63,25 @@ function buildMappedFields(field_mappings, sampleData) {
     if (mapping.source_type !== 'unmapped') {
       // Handle xmlPath from nested fields (choice groups)
       const fieldKey = mapping.xmlPath || mapping.target_field;
-      mappedFields[fieldKey] = getValue(mapping, sampleData);
+      const value = getValue(mapping, sampleData);
+
+      console.log(`[buildMappedFields] Field: ${fieldKey}`);
+      console.log(`[buildMappedFields]   - source_type: ${mapping.source_type}`);
+      console.log(`[buildMappedFields]   - source_value: ${mapping.source_value}`);
+      console.log(`[buildMappedFields]   - type_value: ${mapping.type_value}`);
+      console.log(`[buildMappedFields]   - resolved value: ${value}`);
+
+      mappedFields[fieldKey] = value;
 
       if (mapping.type_value) {
         mappedTypes[fieldKey] = mapping.type_value;
+        console.log(`[buildMappedFields]   - stored type: ${mapping.type_value}`);
       }
     }
   });
+
+  console.log('[buildMappedFields] Final mappedFields:', mappedFields);
+  console.log('[buildMappedFields] Final mappedTypes:', mappedTypes);
 
   return { mappedFields, mappedTypes };
 }
@@ -155,7 +167,7 @@ function generateContractContingentWorkerSOAP(data, sampleData, credential, serv
         </bsvc:Student_Reference>`;
     }
   } else if (preHireSelection === 'create_applicant') {
-    preHireReference = generateApplicantData(mappedFields);
+    preHireReference = generateApplicantData(mappedFields, mappedTypes);
   }
 
   // Build position assignment based on choice selection
@@ -188,13 +200,10 @@ function generateContractContingentWorkerSOAP(data, sampleData, credential, serv
 
   console.log('[XML Generator] Final position assignment XML:', positionAssignment);
 
-  // Build Business Process Data wrapper (contains pre-hire, organization, and position/job requisition)
+  // Build Organization Reference (direct child of Contract_Contingent_Worker_Data)
   const orgReference = generateOrganizationReference(mappedFields, mappedTypes);
-  const businessProcessData = `\n        <bsvc:Contract_Contingent_Worker_Business_Process_Data>
-          ${preHireReference || '<!-- Pre-hire reference REQUIRED - select one option in Pre-hire Selection -->'}${orgReference}${positionAssignment}
-        </bsvc:Contract_Contingent_Worker_Business_Process_Data>`;
 
-  // Build Contract Start Date (REQUIRED, outside Event_Data and Business_Process_Data)
+  // Build Contract Start Date (REQUIRED, direct child of Contract_Contingent_Worker_Data)
   const startDate = mappedFields['Contract_Start_Date'];
   const contractStartDateXml = startDate
     ? `\n        <bsvc:Contract_Start_Date>${escapeXml(startDate)}</bsvc:Contract_Start_Date>`
@@ -213,8 +222,8 @@ function generateContractContingentWorkerSOAP(data, sampleData, credential, serv
   <soapenv:Body>
     <bsvc:Contract_Contingent_Worker_Request bsvc:version="${version}">
       ${generateBusinessProcessParameters(mappedFields)}
-
-      <bsvc:Contract_Contingent_Worker_Data>${businessProcessData}${contractStartDateXml}
+      <bsvc:Contract_Contingent_Worker_Data>
+        ${preHireReference || '<!-- Pre-hire reference REQUIRED - select one option in Pre-hire Selection -->'}${orgReference}${positionAssignment}${contractStartDateXml}
         ${generateContractContingentWorkerEventData(mappedFields, mappedTypes)}
       </bsvc:Contract_Contingent_Worker_Data>
     </bsvc:Contract_Contingent_Worker_Request>
@@ -227,7 +236,7 @@ function generateContractContingentWorkerSOAP(data, sampleData, credential, serv
 /**
  * Generate Applicant Data for Create New Applicant option
  */
-function generateApplicantData(fields) {
+function generateApplicantData(fields, types = {}) {
   let xml = '<bsvc:Applicant_Data>';
 
   if (fields['Contract_Contingent_Worker_Data.Applicant_Data.Applicant_ID']) {
@@ -237,6 +246,8 @@ function generateApplicantData(fields) {
   // Personal Data with Name
   const firstName = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Name_Data.Legal_Name_Data.Name_Detail_Data.First_Name'];
   const lastName = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Name_Data.Legal_Name_Data.Name_Detail_Data.Last_Name'];
+  const countryId = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Name_Data.Legal_Name_Data.Name_Detail_Data.Country_Reference.ID'];
+  const countryType = types['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Name_Data.Legal_Name_Data.Name_Detail_Data.Country_Reference.ID'] || 'ISO_3166-1_Alpha-2_Code';
 
   if (firstName || lastName) {
     xml += `\n          <bsvc:Personal_Data>
@@ -249,26 +260,154 @@ function generateApplicantData(fields) {
     if (lastName) {
       xml += `\n                  <bsvc:Last_Name>${escapeXml(lastName)}</bsvc:Last_Name>`;
     }
+    // Country_Reference is REQUIRED
+    if (countryId) {
+      xml += `\n                  <bsvc:Country_Reference>
+                    <bsvc:ID bsvc:type="${escapeXml(countryType)}">${escapeXml(countryId)}</bsvc:ID>
+                  </bsvc:Country_Reference>`;
+    } else {
+      xml += `\n                  <!-- Country_Reference REQUIRED - please provide country code (e.g., US, GB, CA) -->`;
+    }
     xml += `\n                </bsvc:Name_Detail_Data>
               </bsvc:Legal_Name_Data>
             </bsvc:Name_Data>`;
 
     // Contact Data
     const email = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Email_Address_Data.Email_Address'];
+    const emailUsageType = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Email_Address_Data.Usage_Data.Type_Reference.ID'];
+    const emailUsageTypeRef = types['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Email_Address_Data.Usage_Data.Type_Reference.ID'] || 'Communication_Usage_Type_ID';
+    const emailPrimary = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Email_Address_Data.Usage_Data.Primary'] || 'true';
+
     const phone = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Phone_Data.Phone_Number'];
+    const phoneCountryCode = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Phone_Data.Country_ISO_Code'];
+    const phoneDeviceTypeId = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Phone_Data.Phone_Device_Type_Reference.ID'];
+    const phoneDeviceTypeRef = types['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Phone_Data.Phone_Device_Type_Reference.ID'] || 'Phone_Device_Type_ID';
+    const phoneUsageType = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Phone_Data.Usage_Data.Type_Reference.ID'];
+    const phoneUsageTypeRef = types['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Phone_Data.Usage_Data.Type_Reference.ID'] || 'Communication_Usage_Type_ID';
+    const phonePrimary = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Phone_Data.Usage_Data.Primary'] || 'true';
 
     if (email || phone) {
       xml += `\n            <bsvc:Contact_Data>`;
+
+      // Email with Usage_Data (REQUIRED if email provided)
       if (email) {
         xml += `\n              <bsvc:Email_Address_Data>
-                <bsvc:Email_Address>${escapeXml(email)}</bsvc:Email_Address>
-              </bsvc:Email_Address_Data>`;
+                <bsvc:Email_Address>${escapeXml(email)}</bsvc:Email_Address>`;
+        if (emailUsageType) {
+          xml += `\n                <bsvc:Usage_Data bsvc:Public="true">
+                  <bsvc:Type_Data bsvc:Primary="${escapeXml(emailPrimary)}">
+                    <bsvc:Type_Reference>
+                      <bsvc:ID bsvc:type="${escapeXml(emailUsageTypeRef)}">${escapeXml(emailUsageType)}</bsvc:ID>
+                    </bsvc:Type_Reference>
+                  </bsvc:Type_Data>
+                </bsvc:Usage_Data>`;
+        } else {
+          xml += `\n                <!-- Usage_Data REQUIRED when Email_Address is provided - use WORK as Type -->`;
+        }
+        xml += `\n              </bsvc:Email_Address_Data>`;
       }
+
+      // Phone with all required fields
       if (phone) {
-        xml += `\n              <bsvc:Phone_Data>
-                <bsvc:Phone_Number>${escapeXml(phone)}</bsvc:Phone_Number>
-              </bsvc:Phone_Data>`;
+        xml += `\n              <bsvc:Phone_Data>`;
+        if (phoneCountryCode) {
+          xml += `\n                <bsvc:Country_ISO_Code>${escapeXml(phoneCountryCode)}</bsvc:Country_ISO_Code>`;
+        } else {
+          xml += `\n                <!-- Country_ISO_Code REQUIRED when Phone_Number is provided (e.g., US, GB) -->`;
+        }
+        xml += `\n                <bsvc:Phone_Number>${escapeXml(phone)}</bsvc:Phone_Number>`;
+        if (phoneDeviceTypeId) {
+          xml += `\n                <bsvc:Phone_Device_Type_Reference>
+                  <bsvc:ID bsvc:type="${escapeXml(phoneDeviceTypeRef)}">${escapeXml(phoneDeviceTypeId)}</bsvc:ID>
+                </bsvc:Phone_Device_Type_Reference>`;
+        } else {
+          xml += `\n                <!-- Phone_Device_Type_Reference REQUIRED - use Mobile or Landline -->`;
+        }
+        if (phoneUsageType) {
+          xml += `\n                <bsvc:Usage_Data bsvc:Public="true">
+                  <bsvc:Type_Data bsvc:Primary="${escapeXml(phonePrimary)}">
+                    <bsvc:Type_Reference>
+                      <bsvc:ID bsvc:type="${escapeXml(phoneUsageTypeRef)}">${escapeXml(phoneUsageType)}</bsvc:ID>
+                    </bsvc:Type_Reference>
+                  </bsvc:Type_Data>
+                </bsvc:Usage_Data>`;
+        } else {
+          xml += `\n                <!-- Usage_Data REQUIRED when Phone_Number is provided - use WORK as Type -->`;
+        }
+        xml += `\n              </bsvc:Phone_Data>`;
       }
+
+      // Address Data (optional)
+      const addressCountryId = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Country_Reference.ID'];
+      const addressLine1 = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Address_Line_Data.Line1'];
+      const addressLine2 = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Address_Line_Data.Line2'];
+      const city = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Municipality'];
+      const stateId = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Country_Region_Reference.ID'];
+      const postalCode = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Postal_Code'];
+      const addressUsageType = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Usage_Data.Type_Reference.ID'];
+      const addressPrimary = fields['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Usage_Data.Primary'] || 'true';
+
+      const addressCountryType = types['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Country_Reference.ID'] || 'ISO_3166-1_Alpha-2_Code';
+      const stateType = types['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Country_Region_Reference.ID'] || 'Country_Region_ID';
+      const addressUsageTypeRef = types['Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Usage_Data.Type_Reference.ID'] || 'Communication_Usage_Type_ID';
+
+      if (addressCountryId || addressLine1 || city || postalCode) {
+        xml += `\n              <bsvc:Address_Data>`;
+
+        // Country_Reference (REQUIRED if address provided)
+        if (addressCountryId) {
+          xml += `\n                <bsvc:Country_Reference>
+                  <bsvc:ID bsvc:type="${escapeXml(addressCountryType)}">${escapeXml(addressCountryId)}</bsvc:ID>
+                </bsvc:Country_Reference>`;
+        } else {
+          xml += `\n                <!-- Country_Reference REQUIRED when Address is provided -->`;
+        }
+
+        // Address_Line_Data
+        if (addressLine1 || addressLine2) {
+          xml += `\n                <bsvc:Address_Line_Data>`;
+          if (addressLine1) {
+            xml += `\n                  <bsvc:Line1>${escapeXml(addressLine1)}</bsvc:Line1>`;
+          }
+          if (addressLine2) {
+            xml += `\n                  <bsvc:Line2>${escapeXml(addressLine2)}</bsvc:Line2>`;
+          }
+          xml += `\n                </bsvc:Address_Line_Data>`;
+        }
+
+        // Municipality (City)
+        if (city) {
+          xml += `\n                <bsvc:Municipality>${escapeXml(city)}</bsvc:Municipality>`;
+        }
+
+        // Country_Region_Reference (State/Province)
+        if (stateId) {
+          xml += `\n                <bsvc:Country_Region_Reference>
+                  <bsvc:ID bsvc:type="${escapeXml(stateType)}">${escapeXml(stateId)}</bsvc:ID>
+                </bsvc:Country_Region_Reference>`;
+        }
+
+        // Postal_Code
+        if (postalCode) {
+          xml += `\n                <bsvc:Postal_Code>${escapeXml(postalCode)}</bsvc:Postal_Code>`;
+        }
+
+        // Usage_Data (REQUIRED if address provided)
+        if (addressUsageType) {
+          xml += `\n                <bsvc:Usage_Data bsvc:Public="true">
+                  <bsvc:Type_Data bsvc:Primary="${escapeXml(addressPrimary)}">
+                    <bsvc:Type_Reference>
+                      <bsvc:ID bsvc:type="${escapeXml(addressUsageTypeRef)}">${escapeXml(addressUsageType)}</bsvc:ID>
+                    </bsvc:Type_Reference>
+                  </bsvc:Type_Data>
+                </bsvc:Usage_Data>`;
+        } else {
+          xml += `\n                <!-- Usage_Data REQUIRED when Address is provided - use HOME or WORK as Type -->`;
+        }
+
+        xml += `\n              </bsvc:Address_Data>`;
+      }
+
       xml += `\n            </bsvc:Contact_Data>`;
     }
 
@@ -301,15 +440,22 @@ function generateOrganizationReference(fields, types) {
 function generateContractContingentWorkerEventData(fields, types) {
   let xml = '<bsvc:Contract_Contingent_Worker_Event_Data>';
 
-  // Optional fields
+  // Contingent_Worker_ID (optional)
   if (fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Contingent_Worker_ID']) {
     xml += `\n          <bsvc:Contingent_Worker_ID>${escapeXml(fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Contingent_Worker_ID'])}</bsvc:Contingent_Worker_ID>`;
   }
 
+  // Position_ID (optional) - Used when contracting into Headcount Group or Job Management Org
+  if (fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_ID']) {
+    xml += `\n          <bsvc:Position_ID>${escapeXml(fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_ID'])}</bsvc:Position_ID>`;
+  }
+
+  // Contract_End_Date (optional, required if Create_Purchase_Order is true)
   if (fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Contract_End_Date']) {
     xml += `\n          <bsvc:Contract_End_Date>${escapeXml(fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Contract_End_Date'])}</bsvc:Contract_End_Date>`;
   }
 
+  // First_Day_of_Work (optional)
   if (fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.First_Day_of_Work']) {
     xml += `\n          <bsvc:First_Day_of_Work>${escapeXml(fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.First_Day_of_Work'])}</bsvc:First_Day_of_Work>`;
   }
@@ -337,7 +483,57 @@ function generateContractContingentWorkerEventData(fields, types) {
     xml += `\n          <bsvc:Create_Purchase_Order>${escapeXml(fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Create_Purchase_Order'])}</bsvc:Create_Purchase_Order>`;
   }
 
+  // Position_Details (REQUIRED element - can be empty)
+  xml += generatePositionDetails(fields, types);
+
   xml += '\n        </bsvc:Contract_Contingent_Worker_Event_Data>';
+  return xml;
+}
+
+/**
+ * Generate Position_Details (REQUIRED element in Contract_Contingent_Worker_Event_Data)
+ */
+function generatePositionDetails(fields, types) {
+  let xml = '\n          <bsvc:Position_Details>';
+
+  // Job_Profile_Reference (optional)
+  const jobProfileId = fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Job_Profile_Reference.ID'];
+  const jobProfileType = types['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Job_Profile_Reference.ID'] || 'Job_Profile_ID';
+  if (jobProfileId) {
+    xml += `\n            <bsvc:Job_Profile_Reference>
+              <bsvc:ID bsvc:type="${escapeXml(jobProfileType)}">${escapeXml(jobProfileId)}</bsvc:ID>
+            </bsvc:Job_Profile_Reference>`;
+  }
+
+  // Position_Title (optional)
+  if (fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Position_Title']) {
+    xml += `\n            <bsvc:Position_Title>${escapeXml(fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Position_Title'])}</bsvc:Position_Title>`;
+  }
+
+  // Business_Title (optional)
+  if (fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Business_Title']) {
+    xml += `\n            <bsvc:Business_Title>${escapeXml(fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Business_Title'])}</bsvc:Business_Title>`;
+  }
+
+  // Location_Reference (optional)
+  const locationId = fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Location_Reference.ID'];
+  const locationType = types['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Location_Reference.ID'] || 'Location_ID';
+  if (locationId) {
+    xml += `\n            <bsvc:Location_Reference>
+              <bsvc:ID bsvc:type="${escapeXml(locationType)}">${escapeXml(locationId)}</bsvc:ID>
+            </bsvc:Location_Reference>`;
+  }
+
+  // Position_Time_Type_Reference (optional)
+  const timeTypeId = fields['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Position_Time_Type_Reference.ID'];
+  const timeTypeType = types['Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Position_Time_Type_Reference.ID'] || 'Position_Time_Type_ID';
+  if (timeTypeId) {
+    xml += `\n            <bsvc:Position_Time_Type_Reference>
+              <bsvc:ID bsvc:type="${escapeXml(timeTypeType)}">${escapeXml(timeTypeId)}</bsvc:ID>
+            </bsvc:Position_Time_Type_Reference>`;
+  }
+
+  xml += '\n          </bsvc:Position_Details>';
   return xml;
 }
 
@@ -659,7 +855,7 @@ function generatePositionGroupRestrictions(fields, types) {
     restrictionsData += `\n          </bsvc:Time_Type_Reference>`;
   }
   if (fields['Create_Position_Data.Position_Group_Restrictions_Data.Position_Worker_Type_Reference.ID']) {
-    const posWorkerType = types['Create_Position_Data.Position_Group_Restrictions_Data.Position_Worker_Type_Reference.ID'] || 'WID';
+    const posWorkerType = types['Create_Position_Data.Position_Group_Restrictions_Data.Position_Worker_Type_Reference.ID'] || 'Employee_Type_ID';
     restrictionsData += `\n          <bsvc:Position_Worker_Type_Reference>`;
     restrictionsData += `\n            <bsvc:ID bsvc:type="${escapeXml(posWorkerType)}">${escapeXml(fields['Create_Position_Data.Position_Group_Restrictions_Data.Position_Worker_Type_Reference.ID'])}</bsvc:ID>`;
     restrictionsData += `\n          </bsvc:Position_Worker_Type_Reference>`;
@@ -690,7 +886,7 @@ function generatePositionGroupRestrictions(fields, types) {
 
 function generatePositionRequestReason(fields, types) {
   if (fields['Create_Position_Data.Position_Request_Reason_Reference.ID']) {
-    const reasonType = types['Create_Position_Data.Position_Request_Reason_Reference.ID'] || 'Position_Request_Reason_ID';
+    const reasonType = types['Create_Position_Data.Position_Request_Reason_Reference.ID'] || 'General_Event_Subcategory_ID';
     return `\n        <bsvc:Position_Request_Reason_Reference>
           <bsvc:ID bsvc:type="${escapeXml(reasonType)}">${escapeXml(fields['Create_Position_Data.Position_Request_Reason_Reference.ID'])}</bsvc:ID>
         </bsvc:Position_Request_Reason_Reference>`;

@@ -4,7 +4,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { ChevronDown, ChevronRight, Check, AlertCircle, FileUp, Hash, Sparkles, Globe, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Check, AlertCircle, FileUp, Hash, Sparkles, Globe, X, ToggleRight } from 'lucide-react';
+import { Switch } from "@/components/ui/switch";
+import CountrySelector from './CountrySelector';
+import StateSelector from './StateSelector';
 
 /**
  * ChoiceFieldSelector - Modern card-based UI for SOAP choice groups
@@ -33,6 +36,7 @@ export default function ChoiceFieldSelector({
 }) {
   const [expandedOption, setExpandedOption] = useState(null);
   const [fieldMappingTypes, setFieldMappingTypes] = useState({});
+  const [enabledSections, setEnabledSections] = useState({});
 
   // Auto-expand when option is selected
   useEffect(() => {
@@ -255,25 +259,39 @@ export default function ChoiceFieldSelector({
                   {isActive && isExpanded && option.fields && option.fields.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-blue-200">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {option.fields.map((field, idx) => (
-                          <div
-                            key={idx}
-                            className={field.type === 'textarea' ? 'md:col-span-2' : 'col-span-1'}
-                          >
-                            <FieldMapper
-                              field={field}
-                              fieldValues={fieldValues}
-                              onFieldChange={onFieldChange}
-                              errors={errors}
-                              webhookColumns={webhookColumns}
-                              globalAttributes={globalAttributes}
-                              previousSteps={previousSteps}
-                              dynamicFunctions={availableFunctions}
-                              mappingType={getFieldMappingType(field.xmlPath)}
-                              onMappingTypeChange={(type) => setFieldMappingType(field.xmlPath, type)}
-                            />
-                          </div>
-                        ))}
+                        {option.fields.map((field, idx) => {
+                          // Skip fields that belong to disabled sections
+                          if (field.section && !enabledSections[field.section]) {
+                            return null;
+                          }
+
+                          return (
+                            <div
+                              key={idx}
+                              className={field.type === 'textarea' || field.type === 'toggle' ? 'md:col-span-2' : 'col-span-1'}
+                            >
+                              <FieldMapper
+                                field={field}
+                                fieldValues={fieldValues}
+                                onFieldChange={onFieldChange}
+                                errors={errors}
+                                webhookColumns={webhookColumns}
+                                globalAttributes={globalAttributes}
+                                previousSteps={previousSteps}
+                                dynamicFunctions={availableFunctions}
+                                mappingType={getFieldMappingType(field.xmlPath)}
+                                onMappingTypeChange={(type) => setFieldMappingType(field.xmlPath, type)}
+                                enabledSections={enabledSections}
+                                onToggleSection={(section, enabled) => {
+                                  setEnabledSections(prev => ({
+                                    ...prev,
+                                    [section]: enabled
+                                  }));
+                                }}
+                              />
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -306,7 +324,9 @@ function FieldMapper({
   previousSteps,
   dynamicFunctions,
   mappingType,
-  onMappingTypeChange
+  onMappingTypeChange,
+  enabledSections,
+  onToggleSection
 }) {
   // Determine how many tabs to show based on available data sources
   const hasFileData = webhookColumns && webhookColumns.length > 0;
@@ -316,6 +336,29 @@ function FieldMapper({
   // Check if field has any value set
   const hasValue = fieldValues[field.xmlPath] && fieldValues[field.xmlPath].trim() !== '';
 
+  // Check if this is a country field (ISO code selector)
+  const isCountryField = field.type === 'text_with_type' &&
+    field.typeOptions &&
+    (field.typeOptions.includes('ISO_3166-1_Alpha-2_Code') ||
+     field.typeOptions.includes('ISO_3166-1_Alpha-3_Code'));
+
+  // Check if this is a state/region field with US ISO codes
+  const isStateField = field.type === 'text_with_type' &&
+    field.xmlPath &&
+    field.xmlPath.includes('Country_Region_Reference.ID') &&
+    field.typeOptions &&
+    field.typeOptions.includes('ISO_3166-2_Code');
+
+  // Check if country is United States for state selector
+  const addressCountryPath = 'Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Country_Reference.ID';
+  const addressCountry = fieldValues[addressCountryPath];
+  const isUSCountry = addressCountry === 'US' || addressCountry === 'USA';
+
+  // Show state selector only if state field AND type is ISO_3166-2_Code AND country is US
+  const showStateSelector = isStateField &&
+    fieldValues[`${field.xmlPath}_type`] === 'ISO_3166-2_Code' &&
+    isUSCountry;
+
   // Clear function - removes all values for this field
   const handleClear = () => {
     onFieldChange(field.xmlPath, '');
@@ -323,6 +366,37 @@ function FieldMapper({
       onFieldChange(`${field.xmlPath}_type`, field.defaultType);
     }
   };
+
+  // Toggle field - special rendering (switch to show/hide a section)
+  if (field.type === 'toggle') {
+    const isChecked = enabledSections && enabledSections[field.togglesSection];
+
+    return (
+      <div className="p-3 rounded-md border border-blue-300 bg-blue-50/50">
+        <div className="flex items-center gap-3">
+          <Switch
+            id={field.xmlPath}
+            checked={isChecked || false}
+            onCheckedChange={(checked) => {
+              if (onToggleSection) {
+                onToggleSection(field.togglesSection, checked);
+              }
+            }}
+          />
+          <label
+            htmlFor={field.xmlPath}
+            className="text-sm font-medium text-gray-700 flex items-center gap-2 cursor-pointer"
+          >
+            <ToggleRight className={`w-5 h-5 ${isChecked ? 'text-blue-600' : 'text-gray-400'}`} />
+            {field.name}
+          </label>
+        </div>
+        {field.helpText && (
+          <p className="text-xs text-muted-foreground italic mt-2 ml-8">{field.helpText}</p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={`space-y-2 p-3 rounded-md border transition-colors ${hasValue ? 'border-green-200 bg-green-50/30' : 'border-gray-200 bg-white'}`}>
@@ -542,7 +616,57 @@ function FieldMapper({
       {/* HARDCODED VALUES */}
       {mappingType === 'hardcoded' && (
         <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
-          {field.type === 'text_with_type' ? (
+          {isCountryField ? (
+            // Country Selector for ISO country code fields
+            <div className="space-y-2">
+              <CountrySelector
+                value={fieldValues[field.xmlPath] || ''}
+                type={fieldValues[`${field.xmlPath}_type`] || field.defaultType}
+                onChange={(value) => onFieldChange(field.xmlPath, value)}
+                placeholder="Select country..."
+              />
+              <Select
+                value={fieldValues[`${field.xmlPath}_type`] || field.defaultType}
+                onValueChange={(value) => onFieldChange(`${field.xmlPath}_type`, value)}
+              >
+                <SelectTrigger className="h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {field.typeOptions && field.typeOptions.map((typeOpt) => (
+                    <SelectItem key={typeOpt} value={typeOpt}>
+                      {typeOpt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : showStateSelector ? (
+            // State Selector for US states with ISO 3166-2 codes
+            <div className="space-y-2">
+              <StateSelector
+                value={fieldValues[field.xmlPath] || ''}
+                onChange={(value) => onFieldChange(field.xmlPath, value)}
+                placeholder="Select US state..."
+              />
+              <Select
+                value={fieldValues[`${field.xmlPath}_type`] || field.defaultType}
+                onValueChange={(value) => onFieldChange(`${field.xmlPath}_type`, value)}
+              >
+                <SelectTrigger className="h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {field.typeOptions && field.typeOptions.map((typeOpt) => (
+                    <SelectItem key={typeOpt} value={typeOpt}>
+                      {typeOpt}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : field.type === 'text_with_type' ? (
+            // Regular text_with_type fields
             <div className="grid grid-cols-2 gap-2">
               <Input
                 type="text"
@@ -567,7 +691,22 @@ function FieldMapper({
                 </SelectContent>
               </Select>
             </div>
+          ) : field.type === 'boolean' ? (
+            // Boolean fields - dropdown with true/false
+            <Select
+              value={fieldValues[field.xmlPath] || "true"}
+              onValueChange={(value) => onFieldChange(field.xmlPath, value)}
+            >
+              <SelectTrigger className="h-8">
+                <SelectValue placeholder="Select true or false..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">true</SelectItem>
+                <SelectItem value="false">false</SelectItem>
+              </SelectContent>
+            </Select>
           ) : (
+            // Regular input fields
             <Input
               type={field.type === 'date' ? 'date' : 'text'}
               className={`h-8 text-sm ${errors[field.xmlPath] ? 'border-red-500' : ''}`}

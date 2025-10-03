@@ -113,6 +113,16 @@ export const CONTRACT_CONTINGENT_WORKER_CHOICE_GROUPS = [
             helpText: "REQUIRED when creating new applicant"
           },
           {
+            name: "Country (Name)",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Name_Data.Legal_Name_Data.Name_Detail_Data.Country_Reference.ID",
+            required: true,
+            type: "text_with_type",
+            typeOptions: ["ISO_3166-1_Alpha-2_Code", "ISO_3166-1_Alpha-3_Code", "WID"],
+            defaultType: "ISO_3166-1_Alpha-2_Code",
+            description: "Country for name formatting (e.g., US, GB, CA)",
+            helpText: "REQUIRED: Use ISO 2-letter code (US, GB, CA, etc.)"
+          },
+          {
             name: "Email Address",
             xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Email_Address_Data.Email_Address",
             required: false,
@@ -121,17 +131,161 @@ export const CONTRACT_CONTINGENT_WORKER_CHOICE_GROUPS = [
             helpText: "Optional: Primary contact email"
           },
           {
+            name: "Email Usage Type",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Email_Address_Data.Usage_Data.Type_Reference.ID",
+            required: false,
+            type: "text_with_type",
+            typeOptions: ["Communication_Usage_Type_ID", "WID"],
+            defaultType: "Communication_Usage_Type_ID",
+            description: "Email usage type (WORK, HOME, etc.)",
+            helpText: "REQUIRED if Email Address is provided. Use: WORK"
+          },
+          {
+            name: "Email Is Primary",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Email_Address_Data.Usage_Data.Primary",
+            required: false,
+            type: "boolean",
+            description: "Mark as primary email",
+            helpText: "Default: true"
+          },
+          {
             name: "Phone Number",
             xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Phone_Data.Phone_Number",
             required: false,
             type: "text",
             description: "Primary phone number",
             helpText: "Optional: Primary contact phone"
+          },
+          {
+            name: "Phone Country Code",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Phone_Data.Country_ISO_Code",
+            required: false,
+            type: "text_with_type",
+            typeOptions: ["ISO_3166-1_Alpha-2_Code", "ISO_3166-1_Alpha-3_Code", "WID"],
+            defaultType: "ISO_3166-1_Alpha-2_Code",
+            description: "Country ISO code for phone (e.g., US, GB, CA)",
+            helpText: "REQUIRED if Phone Number is provided. Use 2-letter ISO code"
+          },
+          {
+            name: "Phone Device Type",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Phone_Data.Phone_Device_Type_Reference.ID",
+            required: false,
+            type: "text_with_type",
+            typeOptions: ["Phone_Device_Type_ID", "WID"],
+            defaultType: "Phone_Device_Type_ID",
+            description: "Phone device type (Mobile, Landline, etc.)",
+            helpText: "REQUIRED if Phone Number is provided. Use: Mobile, Landline"
+          },
+          {
+            name: "Phone Usage Type",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Phone_Data.Usage_Data.Type_Reference.ID",
+            required: false,
+            type: "text_with_type",
+            typeOptions: ["Communication_Usage_Type_ID", "WID"],
+            defaultType: "Communication_Usage_Type_ID",
+            description: "Phone usage type (WORK, HOME, etc.)",
+            helpText: "REQUIRED if Phone Number is provided. Use: WORK"
+          },
+          {
+            name: "Phone Is Primary",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Phone_Data.Usage_Data.Primary",
+            required: false,
+            type: "boolean",
+            description: "Mark as primary phone",
+            helpText: "Default: true"
+          },
+          {
+            name: "➕ Include Address",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data._toggle",
+            required: false,
+            type: "toggle",
+            description: "Add address information",
+            helpText: "Enable to add address fields",
+            isToggle: true,
+            togglesSection: "address"
+          },
+          {
+            name: "Address Country",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Country_Reference.ID",
+            required: false,
+            type: "text_with_type",
+            typeOptions: ["ISO_3166-1_Alpha-2_Code", "ISO_3166-1_Alpha-3_Code", "WID"],
+            defaultType: "ISO_3166-1_Alpha-2_Code",
+            description: "Country for address",
+            helpText: "REQUIRED if providing address",
+            section: "address"
+          },
+          {
+            name: "Address Line 1",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Address_Line_Data.Line1",
+            required: false,
+            type: "text",
+            description: "Street address line 1",
+            helpText: "Primary street address",
+            section: "address"
+          },
+          {
+            name: "Address Line 2",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Address_Line_Data.Line2",
+            required: false,
+            type: "text",
+            description: "Street address line 2 (optional)",
+            helpText: "Apartment, suite, unit, etc.",
+            section: "address"
+          },
+          {
+            name: "City",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Municipality",
+            required: false,
+            type: "text",
+            description: "City/Municipality",
+            helpText: "City name",
+            section: "address"
+          },
+          {
+            name: "State/Province",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Country_Region_Reference.ID",
+            required: false,
+            type: "text_with_type",
+            typeOptions: ["WID", "Country_Region_ID", "ISO_3166-2_Code", "ISO_3166-2_Country-Region_Code", "OPM_Country_Subdivision_Code"],
+            defaultType: "ISO_3166-2_Code",
+            description: "State, province, or region",
+            helpText: "e.g., US-CA, US-NY, US-TX for ISO-2 codes",
+            section: "address"
+          },
+          {
+            name: "Postal Code",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Postal_Code",
+            required: false,
+            type: "text",
+            description: "Zip/Postal code",
+            helpText: "e.g., 90210, SW1A 1AA",
+            section: "address"
+          },
+          {
+            name: "Address Usage Type",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Usage_Data.Type_Reference.ID",
+            required: false,
+            type: "text_with_type",
+            typeOptions: ["Communication_Usage_Type_ID", "WID"],
+            defaultType: "Communication_Usage_Type_ID",
+            description: "Address usage type (HOME, WORK, etc.)",
+            helpText: "REQUIRED if Address provided. Use: HOME or WORK",
+            section: "address"
+          },
+          {
+            name: "Address Is Primary",
+            xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Address_Data.Usage_Data.Primary",
+            required: false,
+            type: "boolean",
+            description: "Mark as primary address",
+            helpText: "Default: true",
+            section: "address"
           }
         ],
-        expandedFieldCount: 5,
+        expandedFieldCount: 21,
         totalAvailableFields: 50,
-        note: "Creating a new applicant requires minimum First Name and Last Name. Additional fields available upon expansion."
+        note: "Creating a new applicant requires First Name, Last Name, and Country. If providing Email, Phone, or Address, their respective usage fields are also required."
       }
     ]
   },
