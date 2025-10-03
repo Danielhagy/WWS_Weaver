@@ -19,8 +19,10 @@ import {
   Globe,
   Sparkles
 } from "lucide-react";
-import { DYNAMIC_FUNCTIONS, MAPPING_SOURCE_TYPES } from '@/config/putPositionFields';
+import { DYNAMIC_FUNCTIONS } from '@/config/createPositionFields';
+import { MAPPING_SOURCE_TYPES } from '@/config/createPositionFields';
 import { autoMapFields } from '@/utils/fuzzyMatcher';
+import ChoiceFieldSelector from '../field-mapping/ChoiceFieldSelector';
 
 export default function EnhancedFieldMapper({
   csvHeaders,
@@ -30,16 +32,18 @@ export default function EnhancedFieldMapper({
   parsedAttributes = [],
   smartMode = false,
   allSources = [],
-  fieldDefinitions = []
+  fieldDefinitions = [],
+  choiceGroups = [],
+  onChoiceDataChange,
+  initialChoiceSelections = {},
+  initialChoiceFieldValues = {}
 }) {
-  const [expandedCategories, setExpandedCategories] = useState({
-    "Basic Information": true,
-    "Position Details": true,
-    "Request Information": false,
-    "Process Options": false
-  });
+  const [expandedCategories, setExpandedCategories] = useState({});
   const [autoMapStats, setAutoMapStats] = useState(null);
   const [isAutoMapping, setIsAutoMapping] = useState(false);
+  const [choiceSelections, setChoiceSelections] = useState(initialChoiceSelections);
+  const [choiceFieldValues, setChoiceFieldValues] = useState(initialChoiceFieldValues);
+  const [choiceFieldErrors, setChoiceFieldErrors] = useState({});
 
   // Group fields by category
   const getFieldsByCategory = () => {
@@ -58,7 +62,8 @@ export default function EnhancedFieldMapper({
 
   // Get file columns and global attributes from allSources
   const fileColumns = allSources.filter(s => s.scope === 'row');
-  const globalAttributes = allSources.filter(s => s.scope === 'global');
+  const globalAttributeObjects = allSources.filter(s => s.scope === 'global');
+  const globalAttributes = globalAttributeObjects.map(ga => ga.value || ga);
 
   // Handle auto-mapping
   const handleAutoMap = () => {
@@ -95,7 +100,7 @@ export default function EnhancedFieldMapper({
   const updateMapping = (fieldName, updates) => {
     const newMappings = [...mappings];
     const existingIndex = newMappings.findIndex(m => m.target_field === fieldName);
-    
+
     const mapping = {
       target_field: fieldName,
       ...getMappingForField(fieldName),
@@ -111,8 +116,66 @@ export default function EnhancedFieldMapper({
     } else if (mapping.source_type !== MAPPING_SOURCE_TYPES.UNMAPPED) {
       newMappings.push(mapping);
     }
-    
+
     onMappingsChange(newMappings);
+  };
+
+  // Handle choice group selection
+  const handleChoiceSelect = (choiceGroupId, optionId) => {
+    // For optional choice groups, allow deselection by clicking same option
+    const choiceGroup = choiceGroups.find(cg => cg.id === choiceGroupId);
+    const isOptional = choiceGroup && !choiceGroup.required;
+    const currentSelection = choiceSelections[choiceGroupId];
+
+    let newSelections;
+    if (isOptional && currentSelection === optionId) {
+      // Deselect by removing the selection
+      newSelections = { ...choiceSelections };
+      delete newSelections[choiceGroupId];
+    } else {
+      // Select the new option
+      newSelections = {
+        ...choiceSelections,
+        [choiceGroupId]: optionId
+      };
+    }
+
+    setChoiceSelections(newSelections);
+
+    // Notify parent component
+    if (onChoiceDataChange) {
+      onChoiceDataChange({
+        choiceSelections: newSelections,
+        choiceFieldValues
+      });
+    }
+  };
+
+  const handleChoiceFieldChange = (xmlPath, value) => {
+    const newValues = { ...choiceFieldValues };
+
+    // If clearing the value, remove the key entirely
+    if (value === '' || value === null || value === undefined) {
+      delete newValues[xmlPath];
+      // Also clear any associated type field
+      if (xmlPath.endsWith('_type')) {
+        delete newValues[xmlPath];
+      } else {
+        delete newValues[`${xmlPath}_type`];
+      }
+    } else {
+      newValues[xmlPath] = value;
+    }
+
+    setChoiceFieldValues(newValues);
+
+    // Notify parent component
+    if (onChoiceDataChange) {
+      onChoiceDataChange({
+        choiceSelections,
+        choiceFieldValues: newValues
+      });
+    }
   };
 
   const requiredFields = fieldDefinitions.filter(f => f.required);
@@ -217,6 +280,31 @@ export default function EnhancedFieldMapper({
         </Alert>
       )}
 
+      {/* Choice Groups Section */}
+      {choiceGroups && choiceGroups.length > 0 && (
+        <div className="space-y-4">
+          <div className="border-b pb-2">
+            <h3 className="text-lg font-semibold text-gray-900">Choice Groups</h3>
+            <p className="text-sm text-gray-600">Select exactly one option from each group</p>
+          </div>
+          {choiceGroups.map((choiceGroup) => (
+            <ChoiceFieldSelector
+              key={choiceGroup.id}
+              choiceGroup={choiceGroup}
+              selectedOptionId={choiceSelections[choiceGroup.id]}
+              onSelect={(optionId) => handleChoiceSelect(choiceGroup.id, optionId)}
+              fieldValues={choiceFieldValues}
+              onFieldChange={handleChoiceFieldChange}
+              errors={choiceFieldErrors}
+              webhookColumns={fileColumns.map(fc => fc.value || fc)}
+              globalAttributes={globalAttributes}
+              previousSteps={[]}
+              dynamicFunctions={DYNAMIC_FUNCTIONS}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Field Mapping by Category */}
       {Object.entries(fieldsByCategory).map(([category, fields]) => (
         <div key={category} className="border border-gray-200 rounded-lg bg-white">
@@ -248,7 +336,7 @@ export default function EnhancedFieldMapper({
                   field={field}
                   csvHeaders={csvHeaders}
                   mapping={getMappingForField(field.name)}
-                  onUpdate={(updates) => updateMapping(field.name, updates)}
+                  onUpdate={(updates) => updateMapping(field.name, { ...updates, xmlPath: field.xmlPath })}
                   isJsonMode={isJsonMode}
                   parsedAttributes={parsedAttributes}
                   smartMode={smartMode}

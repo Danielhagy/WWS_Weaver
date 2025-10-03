@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import VersionSelector, { DEFAULT_VERSION } from "@/components/VersionSelector";
 
 const DATA_CENTERS = [
   { value: "WD2", label: "WD2" },
@@ -29,7 +30,8 @@ export default function Credentials() {
     tenant_name: "",
     username: "",
     password: "",
-    data_center: "WD2"
+    data_center: "WD2",
+    webservice_version: DEFAULT_VERSION
   });
 
   useEffect(() => {
@@ -49,7 +51,8 @@ export default function Credentials() {
       tenant_name: cred.tenant_name,
       username: cred.username,
       password: "", // Don't populate password for security
-      data_center: cred.data_center
+      data_center: cred.data_center,
+      webservice_version: cred.webservice_version || DEFAULT_VERSION
     });
     setShowForm(true);
   };
@@ -77,6 +80,7 @@ export default function Credentials() {
       isu_username: formattedUsername, // Store formatted username for webservice
       isu_password_encrypted: encrypted,
       data_center: formData.data_center,
+      webservice_version: formData.webservice_version,
       tenant_url: `https://${formData.data_center.toLowerCase()}-impl-services1.workday.com/ccx/service/${formData.tenant_name}`,
       is_active: true,
       last_validated: new Date().toISOString()
@@ -92,7 +96,8 @@ export default function Credentials() {
       tenant_name: "",
       username: "",
       password: "",
-      data_center: "WD2"
+      data_center: "WD2",
+      webservice_version: DEFAULT_VERSION
     });
     setShowForm(false);
     setEditingId(null);
@@ -191,6 +196,12 @@ export default function Credentials() {
                     Base URL: https://{(formData.data_center || "wd2").toLowerCase()}-impl-services1.workday.com/ccx/service/{formData.tenant_name || "tenant_name"}
                   </p>
                 </div>
+
+                <VersionSelector
+                  value={formData.webservice_version}
+                  onChange={(version) => setFormData({ ...formData, webservice_version: version })}
+                  required={true}
+                />
               </CardContent>
               <CardFooter className="flex justify-end gap-3">
                 <Button
@@ -199,7 +210,7 @@ export default function Credentials() {
                   onClick={() => {
                     setShowForm(false);
                     setEditingId(null);
-                    setFormData({ tenant_name: "", username: "", password: "", data_center: "WD2" });
+                    setFormData({ tenant_name: "", username: "", password: "", data_center: "WD2", webservice_version: DEFAULT_VERSION });
                   }}
                   disabled={isSaving}
                 >
@@ -277,6 +288,14 @@ export default function Credentials() {
                     <div>
                       <p className="text-sm text-gray-500">Data Center</p>
                       <p className="font-medium text-gray-900 mt-1">{cred.data_center}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Web Service Version</p>
+                      <p className="font-medium text-gray-900 mt-1">
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                          {cred.webservice_version || DEFAULT_VERSION}
+                        </Badge>
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-500">Username</p>

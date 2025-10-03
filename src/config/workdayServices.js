@@ -3,19 +3,8 @@
 
 export const WORKDAY_SERVICES = [
   {
-    value: "put_position",
-    label: "Create Position (Legacy - v44.2)",
-    description: "Create new positions using v44.2 schema (manual field definitions)",
-    category: "Staffing",
-    version: "v44.2",
-    namespace: "urn:com.workday/bsvc",
-    requiresFile: true,
-    fieldConfig: "putPositionFields", // References src/config/putPositionFields.js
-    operationName: "Create_Position"
-  },
-  {
     value: "create_position",
-    label: "Create Position (Enhanced - v45.0)",
+    label: "Create Position (v45.0)",
     description: "Create new positions with dynamically generated fields from SOAP documentation",
     category: "Staffing",
     version: "v45.0",
@@ -24,6 +13,18 @@ export const WORKDAY_SERVICES = [
     fieldConfig: "createPositionFields", // References src/config/createPositionFields.js
     operationName: "Create_Position",
     jsonSource: "WebserviceOperationJSON/Create_Position Operation Details.json"
+  },
+  {
+    value: "contract_contingent_worker",
+    label: "Contract Contingent Worker (v45.0)",
+    description: "Contract an existing pre-hire into a contingent worker position or job. Includes compensation, position details, and contract dates.",
+    category: "Staffing",
+    version: "v45.0",
+    namespace: "urn:com.workday/bsvc",
+    requiresFile: true,
+    fieldConfig: "contractContingentWorkerFields", // References src/config/contractContingentWorkerFields.js
+    operationName: "Contract_Contingent_Worker",
+    jsonSource: "WebserviceOperationJSON/Contract_Contingent_Worker Operation Details.json"
   },
   {
     value: "end_contingent_worker_contract",

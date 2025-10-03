@@ -6,8 +6,10 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { PUT_POSITION_FIELDS, getFieldsByCategory as getPositionFieldsByCategory } from '@/config/putPositionFields'
-import { CONTRACT_CONTINGENT_WORKER_FIELDS, getFieldsByCategory as getContractFieldsByCategory } from '@/config/contractContingentWorkerFields'
+import { CREATE_POSITION_FIELDS, getFieldsByCategory as getCreatePositionFieldsByCategory } from '@/config/createPositionFields'
+import { CONTRACT_CONTINGENT_WORKER_FIELDS, CONTRACT_CONTINGENT_WORKER_CHOICE_GROUPS, getFieldsByCategory as getContractFieldsByCategory } from '@/config/contractContingentWorkerFields'
+import { END_CONTINGENT_WORKER_CONTRACT_FIELDS, getFieldsByCategory as getEndContractFieldsByCategory } from '@/config/endContingentWorkerContractFields'
+import ChoiceFieldSelector from '../field-mapping/ChoiceFieldSelector'
 
 // Import dynamic functions configuration
 const DYNAMIC_FUNCTIONS = [
@@ -52,6 +54,9 @@ const DYNAMIC_FUNCTIONS = [
 
 export default function DataMappingInterface({ step, previousSteps, onMappingChange, webhookConfig }) {
   const [mappings, setMappings] = useState(step.mappings || [])
+  const [choiceSelections, setChoiceSelections] = useState(step.choiceSelections || {})
+  const [choiceFieldValues, setChoiceFieldValues] = useState(step.choiceFieldValues || {})
+  const [choiceFieldErrors, setChoiceFieldErrors] = useState({})
 
   // Initialize expanded categories based on web service
   const getInitialExpandedCategories = () => {
@@ -77,20 +82,25 @@ export default function DataMappingInterface({ step, previousSteps, onMappingCha
 
   const [expandedCategories, setExpandedCategories] = useState(getInitialExpandedCategories())
 
-  // Get actual target fields based on web service
+  // Get actual target fields and choice groups based on web service
   let targetFields = []
   let fieldsByCategory = {}
+  let choiceGroups = []
 
   if (step.webService === 'Create_Position') {
-    targetFields = PUT_POSITION_FIELDS
-    fieldsByCategory = getPositionFieldsByCategory()
+    targetFields = CREATE_POSITION_FIELDS
+    fieldsByCategory = getCreatePositionFieldsByCategory()
   } else if (step.webService === 'Contract_Contingent_Worker') {
     targetFields = CONTRACT_CONTINGENT_WORKER_FIELDS
     fieldsByCategory = getContractFieldsByCategory()
+    choiceGroups = CONTRACT_CONTINGENT_WORKER_CHOICE_GROUPS
+  } else if (step.webService === 'End_Contingent_Worker_Contract') {
+    targetFields = END_CONTINGENT_WORKER_CONTRACT_FIELDS
+    fieldsByCategory = getEndContractFieldsByCategory()
   }
 
   // Get webhook source columns from configuration or use mock data
-  const webhookColumns = webhookConfig?.columns || webhookConfig?.attributes || [
+  const webhookColumns = webhookConfig?.columns || [
     'employee_id',
     'first_name',
     'last_name',
@@ -99,6 +109,9 @@ export default function DataMappingInterface({ step, previousSteps, onMappingCha
     'start_date',
     'manager_email'
   ]
+
+  // Get global JSON attributes
+  const globalAttributes = webhookConfig?.attributes || []
 
   const toggleCategory = (category) => {
     setExpandedCategories(prev => ({
@@ -133,6 +146,31 @@ export default function DataMappingInterface({ step, previousSteps, onMappingCha
 
     setMappings(newMappings);
     onMappingChange(newMappings);
+  }
+
+  // Handle choice group selection
+  const handleChoiceSelect = (choiceGroupId, optionId) => {
+    const newSelections = {
+      ...choiceSelections,
+      [choiceGroupId]: optionId
+    }
+    setChoiceSelections(newSelections)
+    // Notify parent of choice selection change
+    if (onMappingChange) {
+      onMappingChange(mappings, newSelections, choiceFieldValues)
+    }
+  }
+
+  const handleChoiceFieldChange = (xmlPath, value) => {
+    const newFieldValues = {
+      ...choiceFieldValues,
+      [xmlPath]: value
+    }
+    setChoiceFieldValues(newFieldValues)
+    // Notify parent of field value change
+    if (onMappingChange) {
+      onMappingChange(mappings, choiceSelections, newFieldValues)
+    }
   }
 
   return (
@@ -217,6 +255,31 @@ export default function DataMappingInterface({ step, previousSteps, onMappingCha
           </Card>
         )}
       </div>
+
+      {/* Choice Groups Section */}
+      {choiceGroups && choiceGroups.length > 0 && (
+        <div className="space-y-3">
+          <div className="text-sm font-medium text-muted-foreground border-b pb-2">
+            Choice Groups
+            <p className="text-xs text-gray-500 mt-1">Select exactly one option from each group</p>
+          </div>
+          {choiceGroups.map((choiceGroup) => (
+            <ChoiceFieldSelector
+              key={choiceGroup.id}
+              choiceGroup={choiceGroup}
+              selectedOptionId={choiceSelections[choiceGroup.id]}
+              onSelect={(optionId) => handleChoiceSelect(choiceGroup.id, optionId)}
+              fieldValues={choiceFieldValues}
+              onFieldChange={handleChoiceFieldChange}
+              errors={choiceFieldErrors}
+              webhookColumns={webhookColumns}
+              globalAttributes={globalAttributes}
+              previousSteps={previousSteps}
+              dynamicFunctions={DYNAMIC_FUNCTIONS}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Field Mapping by Category */}
       {targetFields.length > 0 ? (

@@ -71,6 +71,13 @@ export default function CreateIntegration() {
     }
   };
 
+  const goToStep = (stepId) => {
+    // Only allow navigation to completed steps or current step
+    if (stepId <= currentStep) {
+      setCurrentStep(stepId);
+    }
+  };
+
   const handleSave = async () => {
     if (isEditMode) {
       console.log('Updating integration:', editingId, integrationData);
@@ -115,7 +122,7 @@ export default function CreateIntegration() {
       </div>
 
       {/* Step Indicator */}
-      <StepIndicator steps={STEPS} currentStep={currentStep} />
+      <StepIndicator steps={STEPS} currentStep={currentStep} onStepClick={goToStep} />
 
       {/* Main Content */}
       <Card className="shadow-lg">

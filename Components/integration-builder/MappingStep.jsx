@@ -8,8 +8,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, ArrowRight, FileSpreadsheet, FileJson, Upload, ChevronDown, ChevronRight, X, Info } from "lucide-react";
 import { UploadFile } from "@/integrations/Core";
 import { WORKDAY_SERVICES } from '@/config/workdayServices';
-import { PUT_POSITION_FIELDS } from '@/config/putPositionFields';
 import { CREATE_POSITION_FIELDS } from '@/config/createPositionFields';
+import { CONTRACT_CONTINGENT_WORKER_FIELDS, CONTRACT_CONTINGENT_WORKER_CHOICE_GROUPS } from '@/config/contractContingentWorkerFields';
 import { END_CONTINGENT_WORKER_CONTRACT_FIELDS } from '@/config/endContingentWorkerContractFields';
 import * as XLSX from 'xlsx';
 
@@ -18,9 +18,16 @@ import EnhancedFieldMapper from "./EnhancedFieldMapper.jsx";
 
 // Field configuration registry
 const FIELD_CONFIG_MAP = {
-  'putPositionFields': PUT_POSITION_FIELDS,
   'createPositionFields': CREATE_POSITION_FIELDS,
+  'contractContingentWorkerFields': CONTRACT_CONTINGENT_WORKER_FIELDS,
   'endContingentWorkerContractFields': END_CONTINGENT_WORKER_CONTRACT_FIELDS
+};
+
+// Choice groups registry
+const CHOICE_GROUPS_MAP = {
+  'contractContingentWorkerFields': CONTRACT_CONTINGENT_WORKER_CHOICE_GROUPS,
+  'createPositionFields': [],
+  'endContingentWorkerContractFields': []
 };
 
 export default function MappingStep({ data, updateData, nextStep, prevStep }) {
@@ -35,15 +42,19 @@ export default function MappingStep({ data, updateData, nextStep, prevStep }) {
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [showJsonInput, setShowJsonInput] = useState(false);
   const [fieldDefinitions, setFieldDefinitions] = useState([]);
+  const [choiceGroups, setChoiceGroups] = useState([]);
 
-  // Load field configuration based on selected service
+  // Load field configuration and choice groups based on selected service
   useEffect(() => {
     const service = WORKDAY_SERVICES.find(s => s.value === data.workday_service);
     if (service?.fieldConfig) {
       const fields = FIELD_CONFIG_MAP[service.fieldConfig] || [];
+      const choices = CHOICE_GROUPS_MAP[service.fieldConfig] || [];
       setFieldDefinitions(fields);
+      setChoiceGroups(choices);
     } else {
       setFieldDefinitions([]);
+      setChoiceGroups([]);
     }
   }, [data.workday_service]);
 
@@ -829,6 +840,10 @@ export default function MappingStep({ data, updateData, nextStep, prevStep }) {
           smartMode={data.smart_mode}
           allSources={getAllAvailableSources()}
           fieldDefinitions={fieldDefinitions}
+          choiceGroups={choiceGroups}
+          onChoiceDataChange={(choiceData) => updateData(choiceData)}
+          initialChoiceSelections={data.choiceSelections || {}}
+          initialChoiceFieldValues={data.choiceFieldValues || {}}
         />
       )}
 

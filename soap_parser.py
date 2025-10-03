@@ -9,7 +9,7 @@ def parse_parameter_table(table) -> List[Dict[str, Any]]:
     """Parse a parameter table and extract parameter details."""
     parameters = []
     rows = table.find_all('tr')
-    
+
     for row in rows[1:]:  # Skip header row
         cells = row.find_all('td')
         if len(cells) >= 4:
@@ -17,39 +17,43 @@ def parse_parameter_table(table) -> List[Dict[str, Any]]:
             param_type = cells[1].get_text(strip=True)
             cardinality = cells[2].get_text(strip=True)
             description = cells[3].get_text(strip=True)
-            
+
             # Skip empty rows or header rows
             if not param_name or param_name == 'Parameter name':
                 continue
-            
+
+            # Detect choice fields (marked with [Choice] in parameter name)
+            is_choice = '[Choice]' in param_name
+            clean_name = param_name.replace('[Choice]', '').lstrip('@').strip()
+
             # Determine if it's an attribute or element
             is_attribute = param_name.startswith('@')
-            clean_name = param_name.lstrip('@').strip()
-            
+
             # Check if type is a link to another complex type
             type_link = cells[1].find('a')
             is_complex_type = type_link is not None
             complex_type_ref = None
-            
+
             if is_complex_type and type_link:
                 complex_type_ref = type_link.get('href', '').replace('#', '')
-            
+
             param_info = {
                 'name': clean_name,
                 'original_name': param_name,
                 'type': param_type,
                 'is_attribute': is_attribute,
                 'is_complex_type': is_complex_type,
+                'is_choice': is_choice,
                 'cardinality': cardinality,
                 'description': description,
                 'required': '[1..1]' in cardinality or cardinality.startswith('[1..')
             }
-            
+
             if complex_type_ref:
                 param_info['complex_type_ref'] = complex_type_ref
-            
+
             parameters.append(param_info)
-    
+
     return parameters
 
 
@@ -97,25 +101,91 @@ def parse_element_details(soup, element_name: str) -> Dict[str, Any]:
     }
 
 
+def detect_choice_groups(parameters: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Detect and group consecutive choice fields."""
+    if not parameters:
+        return []
+
+    result = []
+    choice_group = []
+    group_index = 0
+
+    for param in parameters:
+        if param.get('is_choice', False):
+            # Add to current choice group
+            choice_group.append(param)
+        else:
+            # If we have accumulated choice fields, create a group
+            if choice_group:
+                group_index += 1
+                choice_group_data = {
+                    'is_choice_group': True,
+                    'choice_group_id': f'choice_group_{group_index}',
+                    'choice_required': True,  # Choice groups typically require exactly one selection
+                    'options': choice_group.copy(),
+                    'description': f'Choose one of {len(choice_group)} options'
+                }
+                result.append(choice_group_data)
+                choice_group = []
+
+            # Add non-choice parameter
+            result.append(param)
+
+    # Handle any remaining choice fields at the end
+    if choice_group:
+        group_index += 1
+        choice_group_data = {
+            'is_choice_group': True,
+            'choice_group_id': f'choice_group_{group_index}',
+            'choice_required': True,
+            'options': choice_group.copy(),
+            'description': f'Choose one of {len(choice_group)} options'
+        }
+        result.append(choice_group_data)
+
+    return result
+
+
 def parse_nested_types(soup, parameters: List[Dict[str, Any]], parsed_types: set) -> List[Dict[str, Any]]:
     """Recursively parse nested complex types."""
     for param in parameters:
-        if param['is_complex_type'] and 'complex_type_ref' in param:
+        # Handle choice groups
+        if param.get('is_choice_group', False):
+            # Parse nested types for each option in the choice group
+            for option in param.get('options', []):
+                if option['is_complex_type'] and 'complex_type_ref' in option:
+                    type_ref = option['complex_type_ref']
+
+                    if type_ref not in parsed_types:
+                        parsed_types.add(type_ref)
+                        nested_details = parse_element_details(soup, type_ref)
+
+                        if nested_details:
+                            option['nested_structure'] = nested_details
+                            if nested_details['parameters']:
+                                # Detect choice groups in nested structure
+                                nested_details['parameters'] = detect_choice_groups(nested_details['parameters'])
+                                parse_nested_types(soup, nested_details['parameters'], parsed_types)
+
+        # Handle regular parameters
+        elif param.get('is_complex_type', False) and 'complex_type_ref' in param:
             type_ref = param['complex_type_ref']
-            
+
             # Avoid infinite recursion
             if type_ref in parsed_types:
                 continue
-            
+
             parsed_types.add(type_ref)
             nested_details = parse_element_details(soup, type_ref)
-            
+
             if nested_details:
                 param['nested_structure'] = nested_details
                 # Recursively parse nested types
                 if nested_details['parameters']:
+                    # Detect choice groups in nested structure
+                    nested_details['parameters'] = detect_choice_groups(nested_details['parameters'])
                     parse_nested_types(soup, nested_details['parameters'], parsed_types)
-    
+
     return parameters
 
 
@@ -166,14 +236,20 @@ def parse_workday_soap_doc(html_content: str) -> Dict[str, Any]:
     if request_element:
         request_details = parse_element_details(soup, request_element)
         if request_details and request_details['parameters']:
+            # Detect choice groups at top level
+            request_details['parameters'] = detect_choice_groups(request_details['parameters'])
+            # Parse nested types (which will also detect choice groups in nested structures)
             parsed_types = {request_element}
             parse_nested_types(soup, request_details['parameters'], parsed_types)
-    
+
     # Parse Response structure
     response_details = None
     if response_element:
         response_details = parse_element_details(soup, response_element)
         if response_details and response_details['parameters']:
+            # Detect choice groups at top level
+            response_details['parameters'] = detect_choice_groups(response_details['parameters'])
+            # Parse nested types
             parsed_types = {response_element}
             parse_nested_types(soup, response_details['parameters'], parsed_types)
     

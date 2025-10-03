@@ -168,30 +168,37 @@ test.describe('Field Configuration Validation', () => {
     console.log(`  - Categories: ${FIELD_STATS.categories}`);
   });
 
-  test('workdayServices.js should include both v44.2 and v45.0 services', async () => {
+  test('workdayServices.js should include v45.0 services', async () => {
     const { WORKDAY_SERVICES } =
       await import('../src/config/workdayServices.js');
 
     expect(WORKDAY_SERVICES).toBeDefined();
     expect(Array.isArray(WORKDAY_SERVICES)).toBe(true);
-    expect(WORKDAY_SERVICES.length).toBeGreaterThanOrEqual(2);
+    expect(WORKDAY_SERVICES.length).toBeGreaterThanOrEqual(3);
 
-    // Test: Should have v44.2 legacy service
-    const legacyService = WORKDAY_SERVICES.find(s => s.value === 'put_position');
-    expect(legacyService).toBeDefined();
-    expect(legacyService.version).toBe('v44.2');
-    expect(legacyService.fieldConfig).toBe('putPositionFields');
+    // Test: Should have v45.0 Create Position service
+    const createPositionService = WORKDAY_SERVICES.find(s => s.value === 'create_position');
+    expect(createPositionService).toBeDefined();
+    expect(createPositionService.version).toBe('v45.0');
+    expect(createPositionService.fieldConfig).toBe('createPositionFields');
 
-    // Test: Should have v45.0 enhanced service
-    const enhancedService = WORKDAY_SERVICES.find(s => s.value === 'create_position');
-    expect(enhancedService).toBeDefined();
-    expect(enhancedService.version).toBe('v45.0');
-    expect(enhancedService.fieldConfig).toBe('createPositionFields');
+    // Test: Should have v45.0 Contract Contingent Worker service
+    const contractService = WORKDAY_SERVICES.find(s => s.value === 'contract_contingent_worker');
+    expect(contractService).toBeDefined();
+    expect(contractService.version).toBe('v45.0');
+    expect(contractService.fieldConfig).toBe('contractContingentWorkerFields');
+
+    // Test: Should have v45.0 End Contingent Worker Contract service
+    const endContractService = WORKDAY_SERVICES.find(s => s.value === 'end_contingent_worker_contract');
+    expect(endContractService).toBeDefined();
+    expect(endContractService.version).toBe('v45.0');
+    expect(endContractService.fieldConfig).toBe('endContingentWorkerContractFields');
 
     console.log('✓ Service registry validation:');
     console.log(`  - Total services: ${WORKDAY_SERVICES.length}`);
-    console.log(`  - v44.2 (Legacy): ${legacyService.label}`);
-    console.log(`  - v45.0 (Enhanced): ${enhancedService.label}`);
+    console.log(`  - Create Position (v45.0): ${createPositionService.label}`);
+    console.log(`  - Contract Contingent Worker (v45.0): ${contractService.label}`);
+    console.log(`  - End Contingent Worker Contract (v45.0): ${endContractService.label}`);
   });
 
   test('DYNAMIC_FUNCTIONS should be available', async () => {
