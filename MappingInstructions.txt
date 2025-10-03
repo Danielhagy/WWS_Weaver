@@ -1,0 +1,743 @@
+# AI Agent Instructions: Dynamic SOAP Web Service Generator
+
+## System Overview
+
+You are extending an existing no-code integration platform that allows users to dynamically create Workday SOAP web service integrations. The platform currently has a working **Put Position** MVP with field mapping, validation, and UI components. Your task is to implement a generalized system that can handle ANY Workday web service operation by parsing HTML documentation.
+
+**Current Platform:** React-based integration builder with Configuration, Upload, and Mapping steps.
+
+**New Capability:** Automatically parse Workday HTML documentation to generate dynamic field mappings for any operation.
+
+---
+
+## File Organization
+
+### Critical Paths
+
+**HTML Documentation Input:**
+- Users upload HTML files to: `NewWebserviceOps/` folder
+- These are Workday SOAP operation documentation pages (like `Put_Pronoun_Operation_Details.html`)
+
+**Python Parser:**
+- Location: `soap_parser.py` (root directory)
+- Usage: `python soap_parser.py NewWebserviceOps/[operation].html`
+- Output: Automatically creates `WebserviceOperationJSON/[operation].json`
+
+**Generated JSON Storage:**
+- Output directory: `WebserviceOperationJSON/`
+- Format: One JSON file per operation
+- Used by: Configuration and Mapping components
+
+**Field Configuration:**
+- Pattern: `src/config/[operationName]Fields.js`
+- Example: `src/config/putPositionFields.js` (existing reference)
+- Contains: Field definitions, XML paths, validation rules
+
+**React Components:**
+- Configuration: `Components/integration-builder/ConfigurationStep.jsx`
+- Mapping: `Components/integration-builder/EnhancedFieldMapper.jsx`
+- Service Registry: `src/config/workdayServices.js`
+
+---
+
+## Phase 1: HTML Documentation Processing
+
+### Step 1.1: User Uploads HTML
+
+User places Workday operation HTML file in `NewWebserviceOps/` folder:
+```
+NewWebserviceOps/
+├── Put_Pronoun_Operation_Details.html
+├── Get_Workers_Operation_Details.html
+└── Update_Position_Operation_Details.html
+```
+
+### Step 1.2: Run Parser
+
+Execute `soap_parser.py` for each new operation:
+
+```bash
+python soap_parser.py NewWebserviceOps/Put_Pronoun_Operation_Details.html
+```
+
+This automatically creates:
+```
+WebserviceOperationJSON/
+└── Put_Pronoun_Operation_Details.json
+```
+
+### Step 1.3: Validate JSON Output
+
+Verify the generated JSON contains:
+- `operation_name`: Operation identifier
+- `description`: Human-readable description
+- `web_service`: Service name and version
+- `request.parameters`: Array of all input fields with metadata
+- `response.parameters`: Array of response fields
+
+**Critical Validation Points:**
+- All `required: true` fields identified correctly
+- `nested_structure` populated for complex types
+- `is_attribute` vs element distinction clear
+- `cardinality` parsed for repeating elements `[0..*]`
+
+---
+
+## Phase 2: Field Configuration Generation
+
+### Step 2.1: Analyze JSON Structure
+
+Parse the generated JSON to extract field definitions:
+
+```javascript
+// src/config/[operationName]Fields.js
+
+import json from '../../WebserviceOperationJSON/Put_Pronoun_Operation_Details.json';
+
+function extractFields(parameters, parentPath = '', category = 'General') {
+  const fields = [];
+  
+  parameters.forEach(param => {
+    // Skip system attributes at root level
+    if (!parentPath && param.is_attribute && 
+        ['version', 'Add_Only'].includes(param.name)) {
+      return;
+    }
+    
+    const fieldPath = parentPath 
+      ? `${parentPath}.${param.original_name}`
+      : param.original_name;
+    
+    if (param.is_complex_type && param.nested_structure) {
+      // Recurse into nested structures
+      const nestedFields = extractFields(
+        param.nested_structure.parameters,
+        fieldPath,
+        param.name.replace(/_/g, ' ')
+      );
+      fields.push(...nestedFields);
+    } else {
+      // Create field definition
+      fields.push({
+        name: param.name,
+        label: param.name.replace(/_/g, ' '),
+        xmlPath: fieldPath,
+        required: param.required,
+        type: mapDataType(param.type),
+        description: param.description,
+        category: category,
+        cardinality: param.cardinality,
+        isAttribute: param.is_attribute
+      });
+    }
+  });
+  
+  return fields;
+}
+
+function mapDataType(jsonType) {
+  if (jsonType === 'boolean') return 'boolean';
+  if (jsonType.includes('string')) return 'text';
+  if (jsonType.includes(',')) return 'select'; // Enumeration
+  return 'text';
+}
+
+export const putPronounFields = extractFields(json.request.parameters);
+```
+
+### Step 2.2: Follow Put Position Pattern
+
+Reference the existing `src/config/putPositionFields.js` structure:
+
+```javascript
+export const putPronounFields = [
+  {
+    name: 'Supervisory_Organization_ID',
+    label: 'Supervisory Organization ID',
+    xmlPath: 'Pronoun_Data.Supervisory_Organization_Reference.ID',
+    required: true,
+    type: 'text',
+    description: 'The unique identifier for the supervisory organization',
+    helpText: 'Enter the organization ID (e.g., ORG_123)',
+    category: 'Basic Information',
+    defaultValue: ''
+  },
+  // ... more fields
+];
+```
+
+**Required Properties:**
+- `name`: Internal identifier (matches JSON parameter name)
+- `label`: User-facing display name
+- `xmlPath`: Full path in XML structure (dot notation)
+- `required`: Boolean from JSON
+- `type`: `text`, `textarea`, `boolean`, `select`
+- `description`: From JSON description field
+- `category`: Logical grouping for UI
+- `cardinality`: For validation and repeating fields
+
+**Optional Properties:**
+- `helpText`: Additional guidance with examples
+- `defaultValue`: Pre-filled value
+- `options`: Array for select fields (from enumerated types)
+
+### Step 2.3: Handle Complex Type Hierarchies
+
+For nested structures like `Pronoun_Reference.ID`, flatten the path:
+
+```javascript
+// JSON structure:
+{
+  name: "Pronoun_Reference",
+  nested_structure: {
+    parameters: [
+      {
+        name: "ID",
+        nested_structure: {
+          parameters: [
+            { name: "#text", ... },
+            { name: "type", is_attribute: true, ... }
+          ]
+        }
+      }
+    ]
+  }
+}
+
+// Flattened field config:
+{
+  name: 'Pronoun_Reference_ID_Value',
+  xmlPath: 'Pronoun_Reference.ID', // #text becomes element value
+  type: 'text',
+  category: 'Reference Information'
+},
+{
+  name: 'Pronoun_Reference_ID_Type',
+  xmlPath: 'Pronoun_Reference.ID@type', // @ indicates attribute
+  type: 'select',
+  options: ['WID', 'Pronoun_ID'],
+  category: 'Reference Information'
+}
+```
+
+---
+
+## Phase 3: Service Registry Integration
+
+### Step 3.1: Update workdayServices.js
+
+Add the new operation to `src/config/workdayServices.js`:
+
+```javascript
+export const workdayServices = [
+  {
+    id: 'put_position',
+    name: 'Create Position (Put Position)',
+    description: 'Creates a new position in Workday',
+    version: 'Staffing v44.2',
+    category: 'Human Resources',
+    fieldConfig: 'putPositionFields'
+  },
+  {
+    id: 'put_pronoun',
+    name: 'Create/Update Pronoun (Put Pronoun)',
+    description: 'Creates a new Pronoun (or updates an existing Pronoun)',
+    version: 'Human Resources v45.0',
+    category: 'Human Resources',
+    fieldConfig: 'putPronounFields' // References src/config/putPronounFields.js
+  }
+];
+```
+
+### Step 3.2: Dynamic Import in ConfigurationStep
+
+Modify `ConfigurationStep.jsx` to load field configs dynamically:
+
+```javascript
+const handleServiceChange = async (serviceId) => {
+  setSelectedService(serviceId);
+  
+  const service = workdayServices.find(s => s.id === serviceId);
+  if (service) {
+    // Dynamic import of field configuration
+    const fieldModule = await import(`../../config/${service.fieldConfig}.js`);
+    const fields = fieldModule[service.fieldConfig];
+    
+    onConfigUpdate({
+      ...configData,
+      selectedService: serviceId,
+      fieldDefinitions: fields
+    });
+  }
+};
+```
+
+---
+
+## Phase 4: Dynamic UI Field Mapping
+
+### Step 4.1: EnhancedFieldMapper Integration
+
+The existing `EnhancedFieldMapper.jsx` component already supports:
+- Category-based organization
+- Required/Optional badges
+- Three mapping types (File, Hardcode, Dynamic)
+- Progress tracking
+- Validation
+
+**No changes needed** - it reads from `fieldDefinitions` prop passed from Configuration step.
+
+### Step 4.2: Category Assignment Logic
+
+Group fields logically based on XML structure:
+
+```javascript
+function assignCategory(param, parentName) {
+  // Reference fields
+  if (param.name.includes('Reference')) {
+    return 'Reference Information';
+  }
+  
+  // Data structures
+  if (param.name.includes('_Data')) {
+    return 'Core Data';
+  }
+  
+  // IDs and codes
+  if (param.name.includes('_ID') || param.name.includes('_Code')) {
+    return 'Identifiers';
+  }
+  
+  // Flags and options
+  if (param.type === 'boolean') {
+    return 'Options';
+  }
+  
+  // Descriptions and text
+  if (param.name.includes('Description') || param.name.includes('Name')) {
+    return 'Descriptive Information';
+  }
+  
+  // Default
+  return parentName || 'General';
+}
+```
+
+### Step 4.3: Field Type Rendering
+
+Match JSON types to UI components:
+
+| JSON Type | UI Component | Props |
+|-----------|--------------|-------|
+| `string` | `<Input type="text">` | `maxLength` from type (e.g., "string (6)") |
+| `boolean` | `<Checkbox>` | `defaultChecked={false}` |
+| `WID, Pronoun_ID` | `<Select>` | `options={['WID', 'Pronoun_ID']}` |
+| `string (textarea)` | `<Textarea>` | `rows={4}` |
+
+---
+
+## Phase 5: XML Generation Engine
+
+### Step 5.1: Build XML from Field Mappings
+
+Create a generic XML builder that reads field definitions and user mappings:
+
+```javascript
+// src/utils/xmlGenerator.js
+
+export function generateSOAPRequest(fieldDefinitions, userMappings, recordData) {
+  const ns = 'urn:com.workday/bsvc';
+  const doc = document.implementation.createDocument(ns, 'root', null);
+  const root = doc.documentElement;
+  
+  // Process each mapped field
+  fieldDefinitions.forEach(field => {
+    const mapping = userMappings.find(m => m.target_field === field.name);
+    if (!mapping) {
+      if (field.required) {
+        throw new Error(`Required field ${field.name} not mapped`);
+      }
+      return; // Skip unmapped optional fields
+    }
+    
+    // Resolve value from mapping
+    let value;
+    if (mapping.source_type === 'file_column') {
+      value = recordData[mapping.source_value];
+    } else if (mapping.source_type === 'hardcoded') {
+      value = mapping.source_value;
+    } else if (mapping.source_type === 'dynamic_function') {
+      value = executeDynamicFunction(mapping.source_value);
+    }
+    
+    // Skip if no value for optional field
+    if (!value && !field.required) return;
+    
+    // Build XML path
+    buildXMLPath(root, field.xmlPath, value, field.isAttribute, ns);
+  });
+  
+  return new XMLSerializer().serializeToString(root);
+}
+
+function buildXMLPath(parent, path, value, isAttribute, namespace) {
+  const parts = path.split('.');
+  let current = parent;
+  
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    const isLast = i === parts.length - 1;
+    
+    // Check if this is an attribute (has @)
+    if (part.includes('@')) {
+      const attrName = part.split('@')[1];
+      current.setAttributeNS(namespace, `bsvc:${attrName}`, value);
+      return;
+    }
+    
+    if (isLast) {
+      // Set element value
+      current.textContent = value;
+    } else {
+      // Create or find child element
+      let child = Array.from(current.children)
+        .find(c => c.localName === part);
+      
+      if (!child) {
+        child = current.ownerDocument.createElementNS(namespace, `bsvc:${part}`);
+        current.appendChild(child);
+      }
+      current = child;
+    }
+  }
+}
+```
+
+### Step 5.2: SOAP Envelope Wrapper
+
+Wrap the generated XML in standard SOAP envelope:
+
+```javascript
+export function wrapInSOAPEnvelope(requestXML, operationName, credentials) {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope 
+    xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" 
+    xmlns:bsvc="urn:com.workday/bsvc">
+    <soapenv:Header>
+        <bsvc:Workday_Common_Header>
+            <bsvc:Include_Reference_Descriptors_In_Response>true</bsvc:Include_Reference_Descriptors_In_Response>
+        </bsvc:Workday_Common_Header>
+        <wsse:Security 
+            soapenv:mustUnderstand="1" 
+            xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+            <wsse:UsernameToken>
+                <wsse:Username>${credentials.username}@${credentials.tenant}</wsse:Username>
+                <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">${credentials.password}</wsse:Password>
+            </wsse:UsernameToken>
+        </wsse:Security>
+    </soapenv:Header>
+    <soapenv:Body>
+        ${requestXML}
+    </soapenv:Body>
+</soapenv:Envelope>`;
+}
+```
+
+### Step 5.3: Handle Repeating Elements
+
+For fields with cardinality `[0..*]`, support multiple values:
+
+```javascript
+// User mapping for repeating field
+{
+  target_field: 'Pronoun_Reference_ID',
+  source_type: 'file_column',
+  source_value: 'pronoun_ids', // CSV column with comma-separated IDs
+  cardinality: '[0..*]'
+}
+
+// XML generation logic
+if (field.cardinality === '[0..*]') {
+  const values = value.split(',').map(v => v.trim());
+  values.forEach(val => {
+    buildXMLPath(parent, field.xmlPath, val, field.isAttribute, ns);
+  });
+}
+```
+
+---
+
+## Phase 6: Validation and Error Handling
+
+### Step 6.1: Pre-Submission Validation
+
+Implement validation matching the Put Position MVP pattern:
+
+```javascript
+export function validateFieldMappings(fieldDefinitions, userMappings) {
+  const errors = [];
+  const warnings = [];
+  
+  // Check all required fields are mapped
+  const requiredFields = fieldDefinitions.filter(f => f.required);
+  requiredFields.forEach(field => {
+    const isMapped = userMappings.some(m => m.target_field === field.name);
+    if (!isMapped) {
+      errors.push({
+        field: field.name,
+        message: `Required field "${field.label}" must be mapped`
+      });
+    }
+  });
+  
+  // Validate data types
+  userMappings.forEach(mapping => {
+    const field = fieldDefinitions.find(f => f.name === mapping.target_field);
+    if (field && mapping.source_type === 'hardcoded') {
+      if (field.type === 'boolean') {
+        if (!['true', 'false'].includes(mapping.source_value.toLowerCase())) {
+          errors.push({
+            field: field.name,
+            message: `Boolean field must be "true" or "false"`
+          });
+        }
+      }
+    }
+  });
+  
+  return { valid: errors.length === 0, errors, warnings };
+}
+```
+
+### Step 6.2: Visual Feedback
+
+Use the existing badge system from EnhancedFieldMapper:
+
+```javascript
+{field.required ? (
+  <Badge variant="destructive">Required</Badge>
+) : (
+  <Badge variant="secondary">Optional</Badge>
+)}
+
+{mappingComplete ? (
+  <Alert variant="success">
+    <CheckCircle className="h-4 w-4" />
+    <AlertTitle>All required fields mapped!</AlertTitle>
+  </Alert>
+) : (
+  <Alert variant="warning">
+    <AlertCircle className="h-4 w-4" />
+    <AlertTitle>Required fields need mapping</AlertTitle>
+  </Alert>
+)}
+```
+
+---
+
+## Phase 7: Testing and Validation
+
+### Step 7.1: Test with Put_Pronoun
+
+Using the provided JSON and XML samples:
+
+**Test Case 1: Minimal Required Fields**
+```javascript
+const mapping = [
+  {
+    target_field: 'Order',
+    source_type: 'hardcoded',
+    source_value: '1'
+  },
+  {
+    target_field: 'Pronoun_Name',
+    source_type: 'file_column',
+    source_value: 'pronoun'
+  }
+];
+
+// Expected XML:
+// <bsvc:Pronoun_Data>
+//   <bsvc:Order>1</bsvc:Order>
+//   <bsvc:Pronoun_Name>They/Them</bsvc:Pronoun_Name>
+// </bsvc:Pronoun_Data>
+```
+
+**Test Case 2: With Optional Fields**
+```javascript
+const mapping = [
+  // Required fields
+  { target_field: 'Order', source_type: 'hardcoded', source_value: '1' },
+  { target_field: 'Pronoun_Name', source_type: 'file_column', source_value: 'pronoun' },
+  
+  // Optional fields
+  { target_field: 'Pronoun_Code', source_type: 'file_column', source_value: 'code' },
+  { target_field: 'Pronoun_Description', source_type: 'dynamic_function', source_value: 'current_timestamp' },
+  { target_field: 'Pronoun_Inactive', source_type: 'hardcoded', source_value: 'false' }
+];
+
+// Verify optional fields included only when mapped
+```
+
+**Test Case 3: Complex Type with Reference**
+```javascript
+const mapping = [
+  // Reference ID value (#text)
+  { target_field: 'Pronoun_Reference_ID_Value', source_type: 'hardcoded', source_value: 'PRON_123' },
+  
+  // Reference ID type (attribute)
+  { target_field: 'Pronoun_Reference_ID_Type', source_type: 'hardcoded', source_value: 'Pronoun_ID' },
+  
+  // Required data fields
+  { target_field: 'Order', source_type: 'hardcoded', source_value: '1' },
+  { target_field: 'Pronoun_Name', source_type: 'file_column', source_value: 'pronoun' }
+];
+
+// Expected XML:
+// <bsvc:Pronoun_Reference>
+//   <bsvc:ID bsvc:type="Pronoun_ID">PRON_123</bsvc:ID>
+// </bsvc:Pronoun_Reference>
+```
+
+### Step 7.2: Validation Checklist
+
+- [ ] HTML → JSON conversion via `soap_parser.py`
+- [ ] JSON properly structured in `WebserviceOperationJSON/`
+- [ ] Field config generated in `src/config/`
+- [ ] Service registered in `workdayServices.js`
+- [ ] Required fields cannot be skipped
+- [ ] Optional fields can be omitted
+- [ ] XML only includes mapped fields
+- [ ] Attributes rendered with `@` syntax
+- [ ] Complex types properly nested
+- [ ] SOAP envelope wraps request correctly
+- [ ] Validation errors display clearly
+- [ ] Progress tracking updates live
+
+---
+
+## Phase 8: Complete Integration Flow
+
+### User Journey
+
+**Step 1: Add New Web Service**
+1. Developer places HTML file in `NewWebserviceOps/Put_Pronoun_Operation_Details.html`
+2. Run: `python soap_parser.py NewWebserviceOps/Put_Pronoun_Operation_Details.html`
+3. Verify JSON created: `WebserviceOperationJSON/Put_Pronoun_Operation_Details.json`
+
+**Step 2: Generate Field Config**
+1. Create `src/config/putPronounFields.js`
+2. Import JSON and extract fields programmatically
+3. Assign categories, help text, and validation rules
+4. Export field array
+
+**Step 3: Register Service**
+1. Add entry to `src/config/workdayServices.js`
+2. Link to field config file
+3. Service now appears in Configuration dropdown
+
+**Step 4: User Creates Integration**
+1. Navigate to `/CreateIntegration`
+2. Select "Create/Update Pronoun (Put Pronoun)" from dropdown
+3. See operation description and version
+4. Click "Next: Source & Mapping"
+
+**Step 5: Upload Data**
+1. Upload CSV with pronoun data
+2. Platform detects columns automatically
+3. Shows preview of data
+
+**Step 6: Map Fields**
+1. See all fields organized by category
+2. Required fields prominently marked
+3. Map each field using one of three methods:
+   - From CSV column
+   - Hardcoded value
+   - Dynamic function
+4. Real-time validation feedback
+5. Progress indicator shows completion
+
+**Step 7: Generate & Execute**
+1. Platform validates all required fields mapped
+2. Click "Generate SOAP Request"
+3. For each CSV row:
+   - Resolve field values from mappings
+   - Build XML structure
+   - Wrap in SOAP envelope
+   - Send to Workday endpoint
+4. Display results and errors
+
+---
+
+## Best Practices
+
+### Consistency with Existing Platform
+
+**Match Put Position Patterns:**
+- Use same badge styling (destructive for required, secondary for optional)
+- Follow same category organization structure
+- Use identical mapping type icons (FileText, Hash, Zap)
+- Maintain same validation message formats
+- Keep consistent progress tracking UI
+
+**Component Reuse:**
+- EnhancedFieldMapper handles any field configuration
+- ConfigurationStep dropdown already dynamic
+- No need to create new UI components
+
+### Code Quality
+
+**Field Config Files:**
+```javascript
+// Good: Clear, documented structure
+export const putPronounFields = [
+  {
+    name: 'Order',
+    label: 'Display Order',
+    xmlPath: 'Pronoun_Data.Order',
+    required: true,
+    type: 'text',
+    description: 'The display order for the pronoun value',
+    helpText: 'Enter a numeric value (e.g., 1, 2, 3)',
+    category: 'Core Data'
+  }
+];
+
+// Bad: Missing metadata
+export const fields = [
+  { name: 'Order', xmlPath: 'Order', required: true }
+];
+```
+
+**Error Handling:**
+```javascript
+// Good: Specific, actionable errors
+throw new Error(`Required field "${field.label}" not mapped. Please map this field to proceed.`);
+
+// Bad: Generic errors
+throw new Error('Validation failed');
+```
+
+### Documentation
+
+For each new operation, create:
+1. `[Operation]_GUIDE.md` - User-facing mapping guide
+2. `[Operation]_IMPLEMENTATION.md` - Technical details
+3. Sample CSV with test data
+
+---
+
+## Summary
+
+This system enables your platform to dynamically support ANY Workday SOAP operation by:
+
+1. Parsing HTML documentation with `soap_parser.py`
+2. Storing structured JSON in `WebserviceOperationJSON/`
+3. Generating field configs in `src/config/`
+4. Registering services in `workdayServices.js`
+5. Leveraging existing EnhancedFieldMapper component
+6. Building XML requests from user mappings
+7. Wrapping in SOAP envelopes with auth
+8. Executing against Workday endpoints
+
+The AI agent should follow this workflow for each new web service operation, maintaining consistency with the Put Position MVP while extending functionality to any Workday operation.

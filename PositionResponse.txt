@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/">
+    <env:Body>
+        <wd:Create_Position_Response xmlns:wd="urn:com.workday/bsvc" wd:version="v44.2">
+            <wd:Event_Reference>
+                <wd:ID wd:type="WID">f8bdc4d096a51001098b3f2add790000</wd:ID>
+            </wd:Event_Reference>
+        </wd:Create_Position_Response>
+    </env:Body>
+</env:Envelope>

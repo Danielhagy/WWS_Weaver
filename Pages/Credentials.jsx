@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import VersionSelector, { DEFAULT_VERSION } from "@/components/VersionSelector";
 
 const DATA_CENTERS = [
   { value: "WD2", label: "WD2" },
@@ -29,7 +30,8 @@ export default function Credentials() {
     tenant_name: "",
     username: "",
     password: "",
-    data_center: "WD2"
+    data_center: "WD2",
+    webservice_version: DEFAULT_VERSION
   });
 
   useEffect(() => {
@@ -49,7 +51,8 @@ export default function Credentials() {
       tenant_name: cred.tenant_name,
       username: cred.username,
       password: "", // Don't populate password for security
-      data_center: cred.data_center
+      data_center: cred.data_center,
+      webservice_version: cred.webservice_version || DEFAULT_VERSION
     });
     setShowForm(true);
   };
@@ -77,6 +80,7 @@ export default function Credentials() {
       isu_username: formattedUsername, // Store formatted username for webservice
       isu_password_encrypted: encrypted,
       data_center: formData.data_center,
+      webservice_version: formData.webservice_version,
       tenant_url: `https://${formData.data_center.toLowerCase()}-impl-services1.workday.com/ccx/service/${formData.tenant_name}`,
       is_active: true,
       last_validated: new Date().toISOString()
@@ -92,7 +96,8 @@ export default function Credentials() {
       tenant_name: "",
       username: "",
       password: "",
-      data_center: "WD2"
+      data_center: "WD2",
+      webservice_version: DEFAULT_VERSION
     });
     setShowForm(false);
     setEditingId(null);
@@ -101,23 +106,23 @@ export default function Credentials() {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="bg-green-50 rounded-2xl p-6 border border-green-100" style={{ boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.5)' }}>
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Workday Credentials</h1>
-              <p className="text-gray-600 mt-1">Manage your Integration System User credentials</p>
-            </div>
-            <Button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Credentials
-            </Button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-2xl p-6 border border-soft-gray shadow-md">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-primary-dark-blue">Workday Credentials</h1>
+            <p className="text-medium-gray-blue mt-1">Manage your Integration System User credentials</p>
           </div>
+          <Button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-accent-teal hover:bg-accent-teal/90 shadow-md"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Add Credentials
+          </Button>
         </div>
+      </div>
 
         {showForm && (
           <Card className="border-blue-200 shadow-lg">
@@ -191,6 +196,12 @@ export default function Credentials() {
                     Base URL: https://{(formData.data_center || "wd2").toLowerCase()}-impl-services1.workday.com/ccx/service/{formData.tenant_name || "tenant_name"}
                   </p>
                 </div>
+
+                <VersionSelector
+                  value={formData.webservice_version}
+                  onChange={(version) => setFormData({ ...formData, webservice_version: version })}
+                  required={true}
+                />
               </CardContent>
               <CardFooter className="flex justify-end gap-3">
                 <Button
@@ -199,7 +210,7 @@ export default function Credentials() {
                   onClick={() => {
                     setShowForm(false);
                     setEditingId(null);
-                    setFormData({ tenant_name: "", username: "", password: "", data_center: "WD2" });
+                    setFormData({ tenant_name: "", username: "", password: "", data_center: "WD2", webservice_version: DEFAULT_VERSION });
                   }}
                   disabled={isSaving}
                 >
@@ -279,6 +290,14 @@ export default function Credentials() {
                       <p className="font-medium text-gray-900 mt-1">{cred.data_center}</p>
                     </div>
                     <div>
+                      <p className="text-sm text-gray-500">Web Service Version</p>
+                      <p className="font-medium text-gray-900 mt-1">
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                          {cred.webservice_version || DEFAULT_VERSION}
+                        </Badge>
+                      </p>
+                    </div>
+                    <div>
                       <p className="text-sm text-gray-500">Username</p>
                       <p className="font-medium text-gray-900 mt-1">{cred.username || cred.isu_username?.split('@')[0]}</p>
                     </div>
@@ -316,7 +335,6 @@ export default function Credentials() {
             ))
           )}
         </div>
-      </div>
     </div>
   );
 }

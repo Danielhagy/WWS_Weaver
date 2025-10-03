@@ -15,19 +15,71 @@ import {
   CheckCircle,
   ChevronDown,
   ChevronRight,
-  X
+  X,
+  Globe,
+  Sparkles
 } from "lucide-react";
-import { PUT_POSITION_FIELDS, getFieldsByCategory, DYNAMIC_FUNCTIONS, MAPPING_SOURCE_TYPES } from '@/config/putPositionFields';
+import { DYNAMIC_FUNCTIONS } from '@/config/createPositionFields';
+import { MAPPING_SOURCE_TYPES } from '@/config/createPositionFields';
+import { autoMapFields } from '@/utils/fuzzyMatcher';
+import ChoiceFieldSelector from '../field-mapping/ChoiceFieldSelector';
 
-export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsChange }) {
-  const [expandedCategories, setExpandedCategories] = useState({ 
-    "Basic Information": true, 
-    "Position Details": true,
-    "Request Information": false,
-    "Process Options": false
-  });
-  
+export default function EnhancedFieldMapper({
+  csvHeaders,
+  mappings,
+  onMappingsChange,
+  isJsonMode = false,
+  parsedAttributes = [],
+  smartMode = false,
+  allSources = [],
+  fieldDefinitions = [],
+  choiceGroups = [],
+  onChoiceDataChange,
+  initialChoiceSelections = {},
+  initialChoiceFieldValues = {}
+}) {
+  const [expandedCategories, setExpandedCategories] = useState({});
+  const [autoMapStats, setAutoMapStats] = useState(null);
+  const [isAutoMapping, setIsAutoMapping] = useState(false);
+  const [choiceSelections, setChoiceSelections] = useState(initialChoiceSelections);
+  const [choiceFieldValues, setChoiceFieldValues] = useState(initialChoiceFieldValues);
+  const [choiceFieldErrors, setChoiceFieldErrors] = useState({});
+
+  // Group fields by category
+  const getFieldsByCategory = () => {
+    const categories = {};
+    fieldDefinitions.forEach(field => {
+      const category = field.category || 'Other';
+      if (!categories[category]) {
+        categories[category] = [];
+      }
+      categories[category].push(field);
+    });
+    return categories;
+  };
+
   const fieldsByCategory = getFieldsByCategory();
+
+  // Get file columns and global attributes from allSources
+  const fileColumns = allSources.filter(s => s.scope === 'row');
+  const globalAttributeObjects = allSources.filter(s => s.scope === 'global');
+  const globalAttributes = globalAttributeObjects.map(ga => ga.value || ga);
+
+  // Handle auto-mapping
+  const handleAutoMap = () => {
+    setIsAutoMapping(true);
+
+    // Give UI a moment to update
+    setTimeout(() => {
+      const result = autoMapFields(fieldDefinitions, fileColumns, globalAttributes, mappings);
+      onMappingsChange(result.mappings);
+      setAutoMapStats(result.stats);
+      setIsAutoMapping(false);
+
+      // Clear stats after 5 seconds
+      setTimeout(() => setAutoMapStats(null), 5000);
+    }, 100);
+  };
 
   const toggleCategory = (category) => {
     setExpandedCategories(prev => ({
@@ -48,7 +100,7 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
   const updateMapping = (fieldName, updates) => {
     const newMappings = [...mappings];
     const existingIndex = newMappings.findIndex(m => m.target_field === fieldName);
-    
+
     const mapping = {
       target_field: fieldName,
       ...getMappingForField(fieldName),
@@ -64,12 +116,70 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
     } else if (mapping.source_type !== MAPPING_SOURCE_TYPES.UNMAPPED) {
       newMappings.push(mapping);
     }
-    
+
     onMappingsChange(newMappings);
   };
 
-  const requiredFields = PUT_POSITION_FIELDS.filter(f => f.required);
-  const mappedRequiredFields = requiredFields.filter(f => 
+  // Handle choice group selection
+  const handleChoiceSelect = (choiceGroupId, optionId) => {
+    // For optional choice groups, allow deselection by clicking same option
+    const choiceGroup = choiceGroups.find(cg => cg.id === choiceGroupId);
+    const isOptional = choiceGroup && !choiceGroup.required;
+    const currentSelection = choiceSelections[choiceGroupId];
+
+    let newSelections;
+    if (isOptional && currentSelection === optionId) {
+      // Deselect by removing the selection
+      newSelections = { ...choiceSelections };
+      delete newSelections[choiceGroupId];
+    } else {
+      // Select the new option
+      newSelections = {
+        ...choiceSelections,
+        [choiceGroupId]: optionId
+      };
+    }
+
+    setChoiceSelections(newSelections);
+
+    // Notify parent component
+    if (onChoiceDataChange) {
+      onChoiceDataChange({
+        choiceSelections: newSelections,
+        choiceFieldValues
+      });
+    }
+  };
+
+  const handleChoiceFieldChange = (xmlPath, value) => {
+    const newValues = { ...choiceFieldValues };
+
+    // If clearing the value, remove the key entirely
+    if (value === '' || value === null || value === undefined) {
+      delete newValues[xmlPath];
+      // Also clear any associated type field
+      if (xmlPath.endsWith('_type')) {
+        delete newValues[xmlPath];
+      } else {
+        delete newValues[`${xmlPath}_type`];
+      }
+    } else {
+      newValues[xmlPath] = value;
+    }
+
+    setChoiceFieldValues(newValues);
+
+    // Notify parent component
+    if (onChoiceDataChange) {
+      onChoiceDataChange({
+        choiceSelections,
+        choiceFieldValues: newValues
+      });
+    }
+  };
+
+  const requiredFields = fieldDefinitions.filter(f => f.required);
+  const mappedRequiredFields = requiredFields.filter(f =>
     mappings.some(m => m.target_field === f.name && m.source_type !== MAPPING_SOURCE_TYPES.UNMAPPED)
   );
   const allRequiredMapped = mappedRequiredFields.length === requiredFields.length;
@@ -103,23 +213,97 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
       {/* Mapping Summary */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1">
             <p className="text-sm font-medium text-gray-900">
-              Mapping Progress: {totalMapped} / {PUT_POSITION_FIELDS.length} fields
+              Mapping Progress: {totalMapped} / {fieldDefinitions.length} fields
             </p>
             <p className="text-xs text-gray-600 mt-1">
-              Required: {mappedRequiredFields.length}/{requiredFields.length} • 
-              Optional: {totalMapped - mappedRequiredFields.length}/{PUT_POSITION_FIELDS.length - requiredFields.length}
+              Required: {mappedRequiredFields.length}/{requiredFields.length} •
+              Optional: {totalMapped - mappedRequiredFields.length}/{fieldDefinitions.length - requiredFields.length}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <Badge variant="outline" className="bg-white">
               <FileText className="w-3 h-3 mr-1" />
-              {csvHeaders?.length || 0} CSV columns
+              {fileColumns.length} file columns
             </Badge>
+            {globalAttributes.length > 0 && (
+              <Badge variant="outline" className="bg-white">
+                <Globe className="w-3 h-3 mr-1" />
+                {globalAttributes.length} global attributes
+              </Badge>
+            )}
+            {(fileColumns.length > 0 || globalAttributes.length > 0) && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleAutoMap}
+                disabled={isAutoMapping}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                {isAutoMapping ? 'Auto-Mapping...' : 'Auto-Map Fields'}
+              </Button>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Auto-Map Stats */}
+      {autoMapStats && (
+        <Alert className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+          <Sparkles className="w-4 h-4 text-purple-600" />
+          <AlertDescription className="text-gray-900">
+            <strong>Auto-mapping complete!</strong>
+            <div className="grid grid-cols-4 gap-4 mt-2 text-sm">
+              <div>
+                <span className="text-green-600 font-semibold">{autoMapStats.highConfidence}</span>
+                <span className="text-gray-600 ml-1">high confidence</span>
+              </div>
+              <div>
+                <span className="text-yellow-600 font-semibold">{autoMapStats.mediumConfidence}</span>
+                <span className="text-gray-600 ml-1">medium confidence</span>
+              </div>
+              <div>
+                <span className="text-orange-600 font-semibold">{autoMapStats.lowConfidence}</span>
+                <span className="text-gray-600 ml-1">low confidence</span>
+              </div>
+              <div>
+                <span className="text-gray-600 font-semibold">{autoMapStats.unmapped}</span>
+                <span className="text-gray-500 ml-1">unmapped</span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-600 mt-2">
+              Review the suggested mappings below and adjust as needed.
+            </p>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Choice Groups Section */}
+      {choiceGroups && choiceGroups.length > 0 && (
+        <div className="space-y-4">
+          <div className="border-b pb-2">
+            <h3 className="text-lg font-semibold text-gray-900">Choice Groups</h3>
+            <p className="text-sm text-gray-600">Select exactly one option from each group</p>
+          </div>
+          {choiceGroups.map((choiceGroup) => (
+            <ChoiceFieldSelector
+              key={choiceGroup.id}
+              choiceGroup={choiceGroup}
+              selectedOptionId={choiceSelections[choiceGroup.id]}
+              onSelect={(optionId) => handleChoiceSelect(choiceGroup.id, optionId)}
+              fieldValues={choiceFieldValues}
+              onFieldChange={handleChoiceFieldChange}
+              errors={choiceFieldErrors}
+              webhookColumns={fileColumns.map(fc => fc.value || fc)}
+              globalAttributes={globalAttributes}
+              previousSteps={[]}
+              dynamicFunctions={DYNAMIC_FUNCTIONS}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Field Mapping by Category */}
       {Object.entries(fieldsByCategory).map(([category, fields]) => (
@@ -152,7 +336,11 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
                   field={field}
                   csvHeaders={csvHeaders}
                   mapping={getMappingForField(field.name)}
-                  onUpdate={(updates) => updateMapping(field.name, updates)}
+                  onUpdate={(updates) => updateMapping(field.name, { ...updates, xmlPath: field.xmlPath })}
+                  isJsonMode={isJsonMode}
+                  parsedAttributes={parsedAttributes}
+                  smartMode={smartMode}
+                  allSources={allSources}
                 />
               ))}
             </div>
@@ -164,7 +352,67 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
 }
 
 // Individual Field Mapping Row Component
-function FieldMappingRow({ field, csvHeaders, mapping, onUpdate }) {
+function FieldMappingRow({ field, csvHeaders, mapping, onUpdate, isJsonMode = false, parsedAttributes = [], smartMode = false, allSources = [] }) {
+  const [sourceTab, setSourceTab] = useState('file'); // 'file' or 'global'
+
+  // Get file columns and global attributes separately
+  const fileColumns = allSources.filter(s => s.scope === 'row');
+  const globalAttributes = allSources.filter(s => s.scope === 'global');
+  const hasFileData = fileColumns.length > 0;
+  const hasGlobalData = globalAttributes.length > 0;
+
+  // Helper to get friendly display info for an attribute path
+  const getAttributeDisplayInfo = (path) => {
+    // First check allSources if available (combines file + JSON with scope info)
+    if (allSources && allSources.length > 0) {
+      const source = allSources.find(s => s.value === path);
+      if (source) {
+        return {
+          displayName: source.displayName,
+          sampleValue: source.sampleValue,
+          description: source.description,
+          scope: source.scope, // 'global' or 'row'
+          category: source.category
+        };
+      }
+    }
+
+    // Fallback to parsedAttributes for legacy JSON mode
+    if (!smartMode || !parsedAttributes.length) {
+      // Fallback: just show the path
+      return {
+        displayName: path,
+        sampleValue: null,
+        description: null,
+        scope: null
+      };
+    }
+
+    // Find the attribute in smart attributes
+    for (const smartAttr of parsedAttributes) {
+      const option = smartAttr.options?.find(opt => opt.path === path);
+      if (option) {
+        return {
+          displayName: option.label,
+          sampleValue: option.value,
+          description: option.description,
+          category: smartAttr.category,
+          scope: null
+        };
+      }
+    }
+
+    // Fallback: make it friendlier
+    const parts = path.split('.');
+    const lastPart = parts[parts.length - 1];
+    return {
+      displayName: lastPart.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim(),
+      sampleValue: null,
+      description: null,
+      scope: null
+    };
+  };
+
   return (
     <div className="border border-gray-200 rounded-lg p-4 space-y-3 bg-white">
       {/* Field Header */}
@@ -179,6 +427,21 @@ function FieldMappingRow({ field, csvHeaders, mapping, onUpdate }) {
             )}
             {field.type && (
               <Badge variant="outline" className="text-xs capitalize">{field.type}</Badge>
+            )}
+            {mapping.confidence && (
+              <Badge
+                variant="outline"
+                className={`text-xs ${
+                  mapping.confidence >= 70
+                    ? 'bg-green-50 text-green-700 border-green-300'
+                    : mapping.confidence >= 50
+                    ? 'bg-yellow-50 text-yellow-700 border-yellow-300'
+                    : 'bg-orange-50 text-orange-700 border-orange-300'
+                }`}
+              >
+                <Sparkles className="w-3 h-3 mr-1" />
+                {mapping.confidence >= 70 ? 'High' : mapping.confidence >= 50 ? 'Medium' : 'Low'} Confidence
+              </Badge>
             )}
           </div>
           <p className="text-sm text-gray-600">{field.description}</p>
@@ -203,7 +466,7 @@ function FieldMappingRow({ field, csvHeaders, mapping, onUpdate }) {
       </div>
 
       {/* Mapping Type Selector */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         <Button
           type="button"
           variant={mapping.source_type === MAPPING_SOURCE_TYPES.FILE_COLUMN ? "default" : "outline"}
@@ -212,6 +475,16 @@ function FieldMappingRow({ field, csvHeaders, mapping, onUpdate }) {
         >
           <FileText className="w-4 h-4 mr-2" />
           Map from File
+        </Button>
+        <Button
+          type="button"
+          variant={mapping.source_type === MAPPING_SOURCE_TYPES.GLOBAL_ATTRIBUTE ? "default" : "outline"}
+          className={`justify-start ${mapping.source_type === MAPPING_SOURCE_TYPES.GLOBAL_ATTRIBUTE ? "bg-purple-600 text-white" : ""}`}
+          onClick={() => onUpdate({ source_type: MAPPING_SOURCE_TYPES.GLOBAL_ATTRIBUTE, source_value: null })}
+          disabled={!hasGlobalData}
+        >
+          <Globe className="w-4 h-4 mr-2" />
+          Global Attributes
         </Button>
         <Button
           type="button"
@@ -236,7 +509,7 @@ function FieldMappingRow({ field, csvHeaders, mapping, onUpdate }) {
       {/* Value Input based on Source Type */}
       {mapping.source_type === MAPPING_SOURCE_TYPES.FILE_COLUMN && (
         <div>
-          <Label className="text-sm">Select CSV Column</Label>
+          <Label className="text-sm">Select File Column</Label>
           {field.type === 'text_with_type' ? (
             <div className="space-y-2 mt-1">
               <div className="grid grid-cols-2 gap-2">
@@ -250,14 +523,25 @@ function FieldMappingRow({ field, csvHeaders, mapping, onUpdate }) {
                       <SelectValue placeholder="Choose column" />
                     </SelectTrigger>
                     <SelectContent>
-                      {csvHeaders && csvHeaders.length > 0 ? (
-                        csvHeaders.map((header) => (
-                          <SelectItem key={header} value={header}>
-                            {header}
-                          </SelectItem>
-                        ))
+                      {(hasFileData ? fileColumns : (csvHeaders || [])).length > 0 ? (
+                        (hasFileData ? fileColumns : (csvHeaders || [])).map((source) => {
+                          const header = typeof source === 'string' ? source : source.value;
+                          const displayInfo = hasFileData ? getAttributeDisplayInfo(header) : null;
+                          return (
+                            <SelectItem key={header} value={header}>
+                              <div className="flex items-center justify-between w-full gap-2">
+                                <span className="font-medium">{displayInfo?.displayName || header}</span>
+                                {displayInfo?.sampleValue && (
+                                  <span className="text-xs px-2 py-0.5 bg-green-50 text-green-700 rounded border border-green-200 font-mono">
+                                    {String(displayInfo.sampleValue).substring(0, 20)}{String(displayInfo.sampleValue).length > 20 ? '...' : ''}
+                                  </span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          );
+                        })
                       ) : (
-                        <SelectItem value="_none_" disabled>No columns available</SelectItem>
+                        <SelectItem value="_none_" disabled>No file columns available</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
@@ -281,30 +565,295 @@ function FieldMappingRow({ field, csvHeaders, mapping, onUpdate }) {
                   </Select>
                 </div>
               </div>
+              {mapping.source_value && (
+                <div className="p-2 bg-blue-50 border border-blue-200 rounded">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-gray-600">
+                      <strong>Selected:</strong> {getAttributeDisplayInfo(mapping.source_value).displayName}
+                    </p>
+                    {getAttributeDisplayInfo(mapping.source_value).scope && (
+                      <Badge
+                        variant="outline"
+                        className={`text-xs ${
+                          getAttributeDisplayInfo(mapping.source_value).scope === 'global'
+                            ? 'bg-purple-50 text-purple-700 border-purple-300'
+                            : 'bg-blue-50 text-blue-700 border-blue-300'
+                        }`}
+                      >
+                        {getAttributeDisplayInfo(mapping.source_value).scope === 'global' ? 'Global' : 'Row'}
+                      </Badge>
+                    )}
+                  </div>
+                  {getAttributeDisplayInfo(mapping.source_value).description && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {getAttributeDisplayInfo(mapping.source_value).description}
+                    </p>
+                  )}
+                  {getAttributeDisplayInfo(mapping.source_value).sampleValue && (
+                    <p className="text-xs text-gray-600 mt-1">
+                      <strong>Sample:</strong> <code className="px-1 py-0.5 bg-green-50 text-green-700 rounded">
+                        {getAttributeDisplayInfo(mapping.source_value).sampleValue}
+                      </code>
+                    </p>
+                  )}
+                </div>
+              )}
               <p className="text-xs text-gray-500">
                 Type will be used for all records
               </p>
             </div>
           ) : (
-            <Select
-              value={mapping.source_value || ""}
-              onValueChange={(value) => onUpdate({ source_value: value })}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Choose a column from your file" />
-              </SelectTrigger>
-              <SelectContent>
-                {csvHeaders && csvHeaders.length > 0 ? (
-                  csvHeaders.map((header) => (
-                    <SelectItem key={header} value={header}>
-                      {header}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="_none_" disabled>No columns available</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <Select
+                value={mapping.source_value || ""}
+                onValueChange={(value) => onUpdate({ source_value: value })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Choose a file column" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(hasFileData ? fileColumns : (csvHeaders || [])).length > 0 ? (
+                    (hasFileData ? fileColumns : (csvHeaders || [])).map((source) => {
+                      const header = typeof source === 'string' ? source : source.value;
+                      const displayInfo = hasFileData ? getAttributeDisplayInfo(header) : null;
+                      return (
+                        <SelectItem key={header} value={header}>
+                          <div className="flex flex-col gap-1 py-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{displayInfo?.displayName || header}</span>
+                              {displayInfo?.sampleValue && (
+                                <span className="text-xs px-2 py-0.5 bg-green-50 text-green-700 rounded border border-green-200 font-mono">
+                                  {String(displayInfo.sampleValue).substring(0, 30)}{String(displayInfo.sampleValue).length > 30 ? '...' : ''}
+                                </span>
+                              )}
+                            </div>
+                            {displayInfo?.description && (
+                              <span className="text-xs text-gray-500">{displayInfo.description}</span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      );
+                    })
+                  ) : (
+                    <SelectItem value="_none_" disabled>No file columns available</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              {mapping.source_value && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      {getAttributeDisplayInfo(mapping.source_value).displayName}
+                    </p>
+                    {getAttributeDisplayInfo(mapping.source_value).scope && (
+                      <Badge
+                        variant="outline"
+                        className={`text-xs ${
+                          getAttributeDisplayInfo(mapping.source_value).scope === 'global'
+                            ? 'bg-purple-50 text-purple-700 border-purple-300'
+                            : 'bg-blue-50 text-blue-700 border-blue-300'
+                        }`}
+                      >
+                        {getAttributeDisplayInfo(mapping.source_value).scope === 'global' ? 'Global' : 'Row-Specific'}
+                      </Badge>
+                    )}
+                  </div>
+                  {getAttributeDisplayInfo(mapping.source_value).description && (
+                    <p className="text-xs text-gray-600 mt-1">
+                      {getAttributeDisplayInfo(mapping.source_value).description}
+                    </p>
+                  )}
+                  {getAttributeDisplayInfo(mapping.source_value).sampleValue && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="text-xs font-medium text-gray-600">Sample value:</span>
+                      <code className="px-2 py-1 bg-green-50 text-green-700 rounded border border-green-200 text-xs font-mono">
+                        {getAttributeDisplayInfo(mapping.source_value).sampleValue}
+                      </code>
+                    </div>
+                  )}
+                  {(isJsonMode && smartMode) && (
+                    <p className="text-xs text-gray-400 mt-2 font-mono">
+                      Path: {mapping.source_value}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Global Attributes Selector */}
+      {mapping.source_type === MAPPING_SOURCE_TYPES.GLOBAL_ATTRIBUTE && (
+        <div>
+          <Label className="text-sm">Select Global Attribute</Label>
+          {field.type === 'text_with_type' ? (
+            <div className="space-y-2 mt-1">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs text-gray-600">Source Attribute</Label>
+                  <Select
+                    value={mapping.source_value || ""}
+                    onValueChange={(value) => onUpdate({ source_value: value })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Choose global attribute" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {globalAttributes.length > 0 ? (
+                        globalAttributes.map((source) => {
+                          const displayInfo = getAttributeDisplayInfo(source.value);
+                          return (
+                            <SelectItem key={source.value} value={source.value}>
+                              <div className="flex items-center justify-between w-full gap-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{displayInfo?.displayName || source.value}</span>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs bg-purple-50 text-purple-700 border-purple-300"
+                                  >
+                                    Global
+                                  </Badge>
+                                </div>
+                                {displayInfo?.sampleValue && (
+                                  <span className="text-xs px-2 py-0.5 bg-green-50 text-green-700 rounded border border-green-200 font-mono">
+                                    {String(displayInfo.sampleValue).substring(0, 20)}{String(displayInfo.sampleValue).length > 20 ? '...' : ''}
+                                  </span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          );
+                        })
+                      ) : (
+                        <SelectItem value="_none_" disabled>No global attributes available</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs text-gray-600">Type</Label>
+                  <Select
+                    value={mapping.type_value || field.defaultType}
+                    onValueChange={(value) => onUpdate({ ...mapping, type_value: value })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {field.typeOptions.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option.replace(/_/g, ' ')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {mapping.source_value && (
+                <div className="p-2 bg-purple-50 border border-purple-200 rounded">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-gray-600">
+                      <strong>Selected:</strong> {getAttributeDisplayInfo(mapping.source_value).displayName}
+                    </p>
+                    <Badge
+                      variant="outline"
+                      className="text-xs bg-purple-50 text-purple-700 border-purple-300"
+                    >
+                      Global
+                    </Badge>
+                  </div>
+                  {getAttributeDisplayInfo(mapping.source_value).description && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      {getAttributeDisplayInfo(mapping.source_value).description}
+                    </p>
+                  )}
+                  {getAttributeDisplayInfo(mapping.source_value).sampleValue && (
+                    <p className="text-xs text-gray-600 mt-1">
+                      <strong>Sample:</strong> <code className="px-1 py-0.5 bg-green-50 text-green-700 rounded">
+                        {getAttributeDisplayInfo(mapping.source_value).sampleValue}
+                      </code>
+                    </p>
+                  )}
+                </div>
+              )}
+              <p className="text-xs text-gray-500">
+                Type will be used for all records
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Select
+                value={mapping.source_value || ""}
+                onValueChange={(value) => onUpdate({ source_value: value })}
+              >
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Choose a global attribute" />
+                </SelectTrigger>
+                <SelectContent>
+                  {globalAttributes.length > 0 ? (
+                    globalAttributes.map((source) => {
+                      const displayInfo = getAttributeDisplayInfo(source.value);
+                      return (
+                        <SelectItem key={source.value} value={source.value}>
+                          <div className="flex flex-col gap-1 py-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{displayInfo?.displayName || source.value}</span>
+                              <Badge
+                                variant="outline"
+                                className="text-xs bg-purple-50 text-purple-700 border-purple-300"
+                              >
+                                Global
+                              </Badge>
+                              {displayInfo?.sampleValue && (
+                                <span className="text-xs px-2 py-0.5 bg-green-50 text-green-700 rounded border border-green-200 font-mono">
+                                  {String(displayInfo.sampleValue).substring(0, 30)}{String(displayInfo.sampleValue).length > 30 ? '...' : ''}
+                                </span>
+                              )}
+                            </div>
+                            {displayInfo?.description && (
+                              <span className="text-xs text-gray-500">{displayInfo.description}</span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      );
+                    })
+                  ) : (
+                    <SelectItem value="_none_" disabled>No global attributes available</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              {mapping.source_value && (
+                <div className="p-3 bg-purple-50 border border-purple-200 rounded">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-sm font-medium text-gray-900">
+                      {getAttributeDisplayInfo(mapping.source_value).displayName}
+                    </p>
+                    <Badge
+                      variant="outline"
+                      className="text-xs bg-purple-50 text-purple-700 border-purple-300"
+                    >
+                      Global
+                    </Badge>
+                  </div>
+                  {getAttributeDisplayInfo(mapping.source_value).description && (
+                    <p className="text-xs text-gray-600 mt-1">
+                      {getAttributeDisplayInfo(mapping.source_value).description}
+                    </p>
+                  )}
+                  {getAttributeDisplayInfo(mapping.source_value).sampleValue && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="text-xs font-medium text-gray-600">Sample value:</span>
+                      <code className="px-2 py-1 bg-green-50 text-green-700 rounded border border-green-200 text-xs font-mono">
+                        {getAttributeDisplayInfo(mapping.source_value).sampleValue}
+                      </code>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-400 mt-2 font-mono">
+                    Path: {mapping.source_value}
+                  </p>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}

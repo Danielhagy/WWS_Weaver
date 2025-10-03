@@ -4,7 +4,7 @@ import { IntegrationRun } from "@/entities/IntegrationRun";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Plus, Activity, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Plus, Workflow, History, TrendingUp, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import StatsCards from "../Components/Dashboard/StatsCards.jsx";
@@ -37,64 +37,63 @@ export default function Dashboard() {
   const successRate = totalRuns > 0 ? Math.round((successfulRuns / totalRuns) * 100) : 0;
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="bg-green-50 rounded-2xl p-6 border border-green-100" style={{ boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.5)' }}>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Integration Dashboard
-              </h1>
-              <p className="text-gray-600 mt-2">
-                Manage your Workday integrations with ease
-              </p>
-            </div>
-            <Link to={createPageUrl("CreateIntegration")}>
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg">
-                <Plus className="w-5 h-5 mr-2" />
-                New Integration
-              </Button>
-            </Link>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-2xl p-6 border border-soft-gray shadow-md">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-primary-dark-blue">
+              Overview Dashboard
+            </h1>
+            <p className="text-medium-gray-blue mt-1">
+              Manage your Workday integrations with ease
+            </p>
           </div>
+          <Link to={createPageUrl("CreateIntegration")}>
+            <Button className="bg-accent-teal hover:bg-accent-teal/90 shadow-md">
+              <Plus className="w-5 h-5 mr-2" />
+              New Integration
+            </Button>
+          </Link>
         </div>
+      </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCards
             title="Total Integrations"
             value={integrations.length}
-            icon={Activity}
-            bgColor="bg-blue-500"
+            icon={Workflow}
+            bgColor="bg-primary-dark-blue"
             trend={`${activeIntegrations} active`}
           />
           <StatsCards
             title="Recent Runs"
             value={totalRuns}
-            icon={Clock}
-            bgColor="bg-purple-500"
+            icon={History}
+            bgColor="bg-medium-gray-blue"
             trend="Last 10 executions"
           />
           <StatsCards
             title="Success Rate"
             value={`${successRate}%`}
-            icon={CheckCircle}
-            bgColor="bg-green-500"
+            icon={TrendingUp}
+            bgColor="bg-accent-teal"
             trend={`${successfulRuns}/${totalRuns} succeeded`}
           />
           <StatsCards
             title="Failed Runs"
             value={recentRuns.filter(r => r.status === "failed").length}
-            icon={XCircle}
-            bgColor="bg-red-500"
+            icon={AlertTriangle}
+            bgColor="bg-error-red"
           />
         </div>
 
         {/* Integrations Grid */}
         <div>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Your Integrations</h2>
-            <p className="text-sm text-gray-500">{integrations.length} total</p>
+            <h2 className="text-2xl font-bold text-primary-dark-blue">Your Integrations</h2>
+            <p className="text-sm text-medium-gray-blue">{integrations.length} total</p>
           </div>
 
           {isLoading ? (
@@ -109,7 +108,7 @@ export default function Dashboard() {
             </div>
           ) : integrations.length === 0 ? (
             <div className="bg-white rounded-xl shadow-md p-12 text-center">
-              <Activity className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <Workflow className="w-16 h-16 mx-auto mb-4 text-gray-300" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 No Integrations Yet
               </h3>
@@ -136,9 +135,8 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Recent Runs */}
-        <RecentRuns runs={recentRuns} isLoading={isLoading} />
-      </div>
+      {/* Recent Runs */}
+      <RecentRuns runs={recentRuns} isLoading={isLoading} />
     </div>
   );
 }

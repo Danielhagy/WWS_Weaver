@@ -9,9 +9,9 @@ import { format } from "date-fns";
 import { Integration } from "@/entities/Integration";
 
 const statusColors = {
-  draft: "bg-gray-100 text-gray-800 border-gray-200",
-  active: "bg-green-100 text-green-800 border-green-200",
-  paused: "bg-yellow-100 text-yellow-800 border-yellow-200"
+  draft: "bg-soft-gray text-text-dark border-soft-gray",
+  active: "bg-soft-yellow-green/30 text-primary-dark-blue border-soft-yellow-green/50",
+  paused: "bg-muted-orange/10 text-muted-orange border-muted-orange/30"
 };
 
 export default function IntegrationCard({ integration, onUpdate }) {
@@ -22,16 +22,16 @@ export default function IntegrationCard({ integration, onUpdate }) {
   };
 
   return (
-    <Card className="bg-white hover:shadow-xl transition-all duration-300 border-none shadow-md flex flex-col h-full">
+    <Card className="bg-white hover:shadow-xl transition-all duration-300 border-soft-gray shadow-md flex flex-col h-full">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-green-500 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-accent-teal to-medium-gray-blue rounded-lg flex items-center justify-center shadow-sm">
               <Workflow className="w-5 h-5 text-white" />
             </div>
             <div>
               <CardTitle className="text-lg">{integration.name}</CardTitle>
-              <p className="text-sm text-gray-500 mt-1">{integration.workday_service}</p>
+              <p className="text-sm text-medium-gray-blue mt-1">{integration.workday_service}</p>
             </div>
           </div>
         </div>
@@ -50,13 +50,13 @@ export default function IntegrationCard({ integration, onUpdate }) {
         </div>
 
         {integration.description && (
-          <p className="text-sm text-gray-600 line-clamp-2">
+          <p className="text-sm text-text-dark line-clamp-2">
             {integration.description}
           </p>
         )}
 
         {integration.last_run_date && (
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2 text-xs text-medium-gray-blue">
             <Calendar className="w-3 h-3" />
             Last run: {format(new Date(integration.last_run_date), "MMM d, yyyy HH:mm")}
           </div>
@@ -74,7 +74,7 @@ export default function IntegrationCard({ integration, onUpdate }) {
           variant="outline"
           size="sm"
           onClick={handleToggleStatus}
-          className={integration.status === "active" ? "text-yellow-600" : "text-green-600"}
+          className={integration.status === "active" ? "text-muted-orange hover:text-muted-orange" : "text-accent-teal hover:text-accent-teal"}
         >
           {integration.status === "active" ? (
             <Pause className="w-4 h-4" />

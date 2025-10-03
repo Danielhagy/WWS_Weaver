@@ -71,6 +71,13 @@ export default function CreateIntegration() {
     }
   };
 
+  const goToStep = (stepId) => {
+    // Only allow navigation to completed steps or current step
+    if (stepId <= currentStep) {
+      setCurrentStep(stepId);
+    }
+  };
+
   const handleSave = async () => {
     if (isEditMode) {
       console.log('Updating integration:', editingId, integrationData);
@@ -101,36 +108,34 @@ export default function CreateIntegration() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="bg-green-50 rounded-2xl p-6 border border-green-100" style={{ boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.5)' }}>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {isEditMode ? "Edit Integration" : "Create New Integration"}
-            </h1>
-            <p className="text-gray-600 mt-1">
-              {isEditMode ? "Update your Workday integration" : "Build your Workday integration step by step"}
-            </p>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-2xl p-6 border border-soft-gray shadow-md">
+        <div>
+          <h1 className="text-3xl font-bold text-primary-dark-blue">
+            {isEditMode ? "Edit Stitch" : "Create New Stitch"}
+          </h1>
+          <p className="text-medium-gray-blue mt-1">
+            {isEditMode ? "Update your Workday integration" : "Build your Workday integration step by step"}
+          </p>
         </div>
-
-        {/* Step Indicator */}
-        <StepIndicator steps={STEPS} currentStep={currentStep} />
-
-        {/* Main Content */}
-        <Card className="shadow-lg">
-          <CardContent className="p-8">
-            <CurrentStepComponent
-              data={integrationData}
-              updateData={updateData}
-              nextStep={nextStep}
-              prevStep={prevStep}
-              onSave={handleSave}
-            />
-          </CardContent>
-        </Card>
       </div>
+
+      {/* Step Indicator */}
+      <StepIndicator steps={STEPS} currentStep={currentStep} onStepClick={goToStep} />
+
+      {/* Main Content */}
+      <Card className="shadow-lg">
+        <CardContent className="p-8">
+          <CurrentStepComponent
+            data={integrationData}
+            updateData={updateData}
+            nextStep={nextStep}
+            prevStep={prevStep}
+            onSave={handleSave}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }
