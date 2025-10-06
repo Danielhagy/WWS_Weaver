@@ -173,7 +173,7 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="bg-accent-teal/10 text-accent-teal border-none text-xs">
               <Zap className="w-3 h-3 mr-1" />
-              {previousSteps.length} Golden Thread{previousSteps.length !== 1 ? 's' : ''} Available
+              {previousSteps.length} Previous Node{previousSteps.length !== 1 ? 's' : ''} Available
             </Badge>
           </div>
         )}
@@ -275,8 +275,8 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
           </div>
         )}
 
-        {/* Execution Mode Selector (shown when web service is selected) */}
-        {((stepType === 'new' && localStep.webService) || (stepType === 'existing' && localStep.existingStitchId)) && (
+        {/* Execution Mode Selector (shown when web service is selected, hidden if in loop) */}
+        {!localStep.loopBundleId && ((stepType === 'new' && localStep.webService) || (stepType === 'existing' && localStep.existingStitchId)) && (
           <div className="space-y-3">
             <Label className="text-sm font-semibold">Execution Mode</Label>
             <div className="grid grid-cols-2 gap-3">
@@ -350,6 +350,16 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
                 )}
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Loop Mode Info (shown when in loop) */}
+        {localStep.loopBundleId && ((stepType === 'new' && localStep.webService) || (stepType === 'existing' && localStep.existingStitchId)) && (
+          <div className="flex items-start gap-2 p-3 bg-accent-teal/10 border border-accent-teal/30 rounded-lg">
+            <Repeat className="w-4 h-4 text-accent-teal flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-accent-teal">
+              <strong>Loop Mode:</strong> This step is in a loop and will execute for each row automatically.
+            </p>
           </div>
         )}
 

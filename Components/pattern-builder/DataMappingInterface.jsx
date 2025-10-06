@@ -213,7 +213,7 @@ export default function DataMappingInterface({ step, previousSteps, onMappingCha
           </div>
         </Card>
 
-        {/* Golden Threads from Previous Steps */}
+        {/* Previous Nodes */}
         {previousSteps.length > 0 && (
           <Card className="p-3 bg-gradient-to-br from-accent-teal/10 to-white border-accent-teal/30">
             <div className="flex items-center gap-2 mb-2">
@@ -221,11 +221,8 @@ export default function DataMappingInterface({ step, previousSteps, onMappingCha
                 <Zap className="w-3 h-3 text-white" />
               </div>
               <span className="font-semibold text-sm text-primary-dark-blue">
-                Golden Threads
+                Previous Nodes
               </span>
-              <Badge variant="secondary" className="bg-accent-teal/20 text-accent-teal border-none text-xs">
-                from previous steps
-              </Badge>
             </div>
             <div className="space-y-2 ml-8">
               {previousSteps.map((prevStep) => (
@@ -239,7 +236,7 @@ export default function DataMappingInterface({ step, previousSteps, onMappingCha
                         key={field}
                         variant="outline"
                         className="text-xs bg-white border-accent-teal/30 text-accent-teal"
-                        data-testid={`golden-thread-${prevStep.id}-${field}`}
+                        data-testid={`previous-node-${prevStep.id}-${field}`}
                       >
                         {field}
                       </Badge>

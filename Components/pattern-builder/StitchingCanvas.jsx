@@ -8,6 +8,7 @@ import TriggerBlock from './TriggerBlock'
 import WebhookConfigPanel from './WebhookConfigPanel'
 import DropZone from './DropZone'
 import LoopBundle from './LoopBundle'
+import AddStepButton from './AddStepButton'
 
 export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWebhookConfig }) {
   const [selectedStepId, setSelectedStepId] = useState(null)
@@ -15,6 +16,7 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
   const [webhookConfigOpen, setWebhookConfigOpen] = useState(false)
   const [isConfigExpanded, setIsConfigExpanded] = useState(false)
   const [draggedStep, setDraggedStep] = useState(null)
+  const [draggedBundle, setDraggedBundle] = useState(null)
   const [activeDropZone, setActiveDropZone] = useState(null) // Track which drop zone is active
   const [loopBundles, setLoopBundles] = useState([]) // Track loop bundles
 
@@ -71,16 +73,71 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
     setSteps([newStep, ...updatedSteps])
   }
 
-  const handleAddStep = () => {
+  const handleAddStep = (insertPosition = null, loopBundleId = null, afterStepId = null, afterBundleId = null) => {
+    // Calculate the correct order value for the new step based on visual position
+    let newOrder = 1
+
+    if (insertPosition === 0) {
+      // Insert at the very beginning - order should be 1, shift everything else
+      newOrder = 1
+    } else if (afterStepId) {
+      // Insert after a specific step
+      const afterStep = steps.find(s => s.id === afterStepId)
+      if (afterStep) {
+        // New step should have order right after this step
+        // We need to find what comes next visually to know if we need to shift orders
+        newOrder = afterStep.order + 1
+      }
+    } else if (afterBundleId) {
+      // Insert after a bundle
+      const bundle = loopBundles.find(b => b.id === afterBundleId)
+      if (bundle) {
+        newOrder = bundle.order + 1
+      }
+    } else {
+      // Add to end - get the highest order among independent steps and bundles
+      const independentSteps = steps.filter(s => !s.loopBundleId)
+      const maxStepOrder = independentSteps.length > 0 ? Math.max(...independentSteps.map(s => s.order || 0)) : 0
+      const maxBundleOrder = loopBundles.length > 0 ? Math.max(...loopBundles.map(b => b.order || 0)) : 0
+      newOrder = Math.max(maxStepOrder, maxBundleOrder) + 1
+    }
+
     const newStep = {
       id: `step-${Date.now()}`,
-      order: steps.length + 1,
+      order: newOrder,
       name: `Step ${steps.length + 1}`,
       webService: null,
       mappings: [],
-      testResults: null
+      testResults: null,
+      loopBundleId: loopBundleId
     }
-    setSteps([...steps, newStep])
+
+    // If we're inserting in the middle, we need to shift the orders of items that come after
+    // Only shift orders for independent steps and bundles, not steps in loops
+    let updatedSteps = [...steps]
+    let updatedBundles = [...loopBundles]
+
+    // Shift orders of independent steps that are >= newOrder
+    updatedSteps = updatedSteps.map(step => {
+      if (!step.loopBundleId && step.order >= newOrder) {
+        return { ...step, order: step.order + 1 }
+      }
+      return step
+    })
+
+    // Shift orders of bundles that are >= newOrder
+    updatedBundles = updatedBundles.map(bundle => {
+      if (bundle.order >= newOrder) {
+        return { ...bundle, order: bundle.order + 1 }
+      }
+      return bundle
+    })
+
+    // Add the new step
+    updatedSteps.push(newStep)
+
+    setSteps(updatedSteps)
+    setLoopBundles(updatedBundles)
     setSelectedStepId(newStep.id)
     setConfigPanelOpen(true)
   }
@@ -154,7 +211,7 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
     ))
   }
 
-  // Drag and drop handlers
+  // Drag and drop handlers for steps
   const handleDragStart = (e, step) => {
     setDraggedStep(step)
     e.dataTransfer.effectAllowed = 'move'
@@ -164,6 +221,18 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
 
   const handleDragEnd = () => {
     setDraggedStep(null)
+    setActiveDropZone(null)
+  }
+
+  // Drag and drop handlers for bundles
+  const handleBundleDragStart = (e, bundle) => {
+    setDraggedBundle(bundle)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/html', e.target)
+  }
+
+  const handleBundleDragEnd = () => {
+    setDraggedBundle(null)
     setActiveDropZone(null)
   }
 
@@ -185,33 +254,207 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
     // This prevents flashing when moving between zones
   }
 
-  const handleDropZoneDrop = (e, insertBeforeIndex) => {
+  const handleDropZoneDrop = (e, dropInfo) => {
     e.preventDefault()
     e.stopPropagation()
 
+    console.log('Drop Info:', dropInfo)
+    console.log('Dragged Step:', draggedStep)
+
+    // Handle dropping into a loop
+    if (dropInfo.position === 'into-loop') {
+      if (draggedStep) {
+        // Add step to the bundle - remove it from independent steps by clearing its order
+        setSteps(steps.map(step =>
+          step.id === draggedStep.id ? { ...step, loopBundleId: dropInfo.bundleId } : step
+        ))
+        setDraggedStep(null)
+        setActiveDropZone(null)
+      }
+      return
+    }
+
+    // Handle bundle drops
+    if (draggedBundle) {
+      const oldOrder = draggedBundle.order
+
+      // Determine new target order based on dropInfo
+      let newOrder
+
+      if (dropInfo.position === 'start') {
+        newOrder = 1
+      } else if (dropInfo.position === 'after-step') {
+        const afterStep = steps.find(s => s.id === dropInfo.afterStepId)
+        newOrder = afterStep ? afterStep.order + 1 : loopBundles.length
+      } else if (dropInfo.position === 'after-bundle') {
+        const afterBundle = loopBundles.find(b => b.id === dropInfo.afterBundleId)
+        newOrder = afterBundle ? afterBundle.order + 1 : loopBundles.length
+      } else {
+        const independentSteps = steps.filter(s => !s.loopBundleId)
+        const maxStepOrder = independentSteps.length > 0 ? Math.max(...independentSteps.map(s => s.order || 0)) : 0
+        const maxBundleOrder = loopBundles.length > 0 ? Math.max(...loopBundles.map(b => b.order || 0)) : 0
+        newOrder = Math.max(maxStepOrder, maxBundleOrder) + 1
+      }
+
+      // Shift orders
+      let updatedSteps = [...steps]
+      let updatedBundles = [...loopBundles]
+
+      // First, remove the old order by shifting items down
+      updatedSteps = updatedSteps.map(step => {
+        if (!step.loopBundleId && step.order > oldOrder) {
+          return { ...step, order: step.order - 1 }
+        }
+        return step
+      })
+
+      updatedBundles = updatedBundles.map(bundle => {
+        if (bundle.id === draggedBundle.id) {
+          return { ...bundle, order: newOrder }
+        } else if (bundle.order > oldOrder) {
+          return { ...bundle, order: bundle.order - 1 }
+        }
+        return bundle
+      })
+
+      // Then shift items at new position up
+      updatedSteps = updatedSteps.map(step => {
+        if (!step.loopBundleId && step.order >= newOrder) {
+          return { ...step, order: step.order + 1 }
+        }
+        return step
+      })
+
+      updatedBundles = updatedBundles.map(bundle => {
+        if (bundle.id !== draggedBundle.id && bundle.order >= newOrder) {
+          return { ...bundle, order: bundle.order + 1 }
+        }
+        return bundle
+      })
+
+      setSteps(updatedSteps)
+      setLoopBundles(updatedBundles)
+      setDraggedBundle(null)
+      setActiveDropZone(null)
+      return
+    }
+
+    // Handle step drops
     if (!draggedStep) {
       setActiveDropZone(null)
       return
     }
 
-    // Find current index of dragged step
-    const draggedIndex = steps.findIndex(s => s.id === draggedStep.id)
+    // Calculate new order for the step
+    let newOrder
+    const oldOrder = draggedStep.order
+    const wasInLoop = !!draggedStep.loopBundleId
 
-    // If dropping in same position, do nothing
-    if (draggedIndex === insertBeforeIndex || draggedIndex === insertBeforeIndex - 1) {
+    if (dropInfo.position === 'start') {
+      newOrder = 1
+    } else if (dropInfo.position === 'after-step') {
+      const afterStep = steps.find(s => s.id === dropInfo.afterStepId)
+      newOrder = afterStep ? afterStep.order + 1 : 1
+    } else if (dropInfo.position === 'after-bundle') {
+      const bundle = loopBundles.find(b => b.id === dropInfo.afterBundleId)
+      newOrder = bundle ? bundle.order + 1 : 1
+    } else {
+      const independentSteps = steps.filter(s => !s.loopBundleId)
+      const maxStepOrder = independentSteps.length > 0 ? Math.max(...independentSteps.map(s => s.order || 0)) : 0
+      const maxBundleOrder = loopBundles.length > 0 ? Math.max(...loopBundles.map(b => b.order || 0)) : 0
+      newOrder = Math.max(maxStepOrder, maxBundleOrder) + 1
+    }
+
+    console.log('Moving step from order', oldOrder, 'to', newOrder, 'wasInLoop:', wasInLoop)
+
+    // Update steps and bundles
+    let updatedSteps = [...steps]
+    let updatedBundles = [...loopBundles]
+
+    // If step was in a loop, we don't need to shift down old positions
+    // If step wasn't in a loop, shift down items after its old position
+    if (!wasInLoop && oldOrder) {
+      updatedSteps = updatedSteps.map(step => {
+        if (!step.loopBundleId && step.id !== draggedStep.id && step.order > oldOrder) {
+          return { ...step, order: step.order - 1 }
+        }
+        return step
+      })
+
+      updatedBundles = updatedBundles.map(bundle => {
+        if (bundle.order > oldOrder) {
+          return { ...bundle, order: bundle.order - 1 }
+        }
+        return bundle
+      })
+    }
+
+    // Shift items at new position up
+    updatedSteps = updatedSteps.map(step => {
+      if (!step.loopBundleId && step.id !== draggedStep.id && step.order >= newOrder) {
+        return { ...step, order: step.order + 1 }
+      }
+      return step
+    })
+
+    updatedBundles = updatedBundles.map(bundle => {
+      if (bundle.order >= newOrder) {
+        return { ...bundle, order: bundle.order + 1 }
+      }
+      return bundle
+    })
+
+    // Update the dragged step with new order and remove from loop
+    updatedSteps = updatedSteps.map(step => {
+      if (step.id === draggedStep.id) {
+        return { ...step, order: newOrder, loopBundleId: null }
+      }
+      return step
+    })
+
+    console.log('Final updated steps:', updatedSteps)
+    console.log('Final updated bundles:', updatedBundles)
+
+    setSteps(updatedSteps)
+    setLoopBundles(updatedBundles)
+    setDraggedStep(null)
+    setActiveDropZone(null)
+  }
+
+  // Handle dropping on a step block to swap positions
+  const handleStepDragOver = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleStepDrop = (e, targetStep) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!draggedStep || draggedStep.id === targetStep.id) {
       setDraggedStep(null)
-      setActiveDropZone(null)
       return
     }
 
-    // Create new array without the dragged step
-    const newSteps = steps.filter(s => s.id !== draggedStep.id)
+    // Find indices
+    const draggedIndex = steps.findIndex(s => s.id === draggedStep.id)
+    const targetIndex = steps.findIndex(s => s.id === targetStep.id)
 
-    // Calculate actual insert position (adjust if dragged from before insert position)
-    const adjustedInsertIndex = draggedIndex < insertBeforeIndex ? insertBeforeIndex - 1 : insertBeforeIndex
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedStep(null)
+      return
+    }
 
-    // Insert at new position
-    newSteps.splice(adjustedInsertIndex, 0, draggedStep)
+    // Swap the steps
+    const newSteps = [...steps]
+
+    // Preserve loop bundle assignments during swap
+    const draggedStepWithBundle = { ...draggedStep }
+    const targetStepWithBundle = { ...targetStep }
+
+    // Swap positions
+    newSteps[draggedIndex] = targetStepWithBundle
+    newSteps[targetIndex] = draggedStepWithBundle
 
     // Update order numbers
     const reorderedSteps = newSteps.map((step, index) => ({
@@ -221,19 +464,6 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
 
     setSteps(reorderedSteps)
     setDraggedStep(null)
-    setActiveDropZone(null)
-  }
-
-  // Prevent step blocks from being drop targets (only drop zones should accept drops)
-  const handleStepDragOver = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }
-
-  const handleStepDrop = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    // Do nothing - drops should only happen on drop zones
   }
 
   const selectedStep = steps.find(step => step.id === selectedStepId)
@@ -264,7 +494,7 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
                     Thread Canvas
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Build your workflow by connecting steps with Golden Threads
+                    Build your workflow by connecting steps
                   </p>
                 </div>
               </div>
@@ -297,16 +527,13 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
                 onClick={() => setWebhookConfigOpen(true)}
               />
 
-              {/* Drop Zone Before First Step */}
-              {steps.length > 0 && (
-                <DropZone
-                  isActive={activeDropZone === 0}
-                  position={0}
-                  onDragOver={(e) => handleDropZoneDragOver(e, 0)}
-                  onDragLeave={handleDropZoneDragLeave}
-                  onDrop={(e) => handleDropZoneDrop(e, 0)}
-                />
-              )}
+              {/* Add Step Button Before First Step */}
+              <AddStepButton
+                onAdd={() => handleAddStep(0)}
+                position={{ position: 'start' }}
+                onDrop={handleDropZoneDrop}
+                isDragging={!!draggedStep || !!draggedBundle}
+              />
 
               {/* Render Loop Bundles and Independent Steps */}
               {(() => {
@@ -335,15 +562,21 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
                           onDragStart={handleDragStart}
                           onDragEnd={handleDragEnd}
                           onAddStepToBundle={handleAddStepToBundle}
+                          onAddStep={handleAddStep}
+                          isDragging={!!draggedStep}
+                          draggedStep={draggedStep}
+                          onBundleDragStart={handleBundleDragStart}
+                          onBundleDragEnd={handleBundleDragEnd}
+                          isBundleDragging={draggedBundle?.id === item.id}
+                          onDropInLoop={handleDropZoneDrop}
                         />
 
-                        {/* Drop Zone After Bundle */}
-                        <DropZone
-                          isActive={activeDropZone === index + 1}
-                          position={index + 1}
-                          onDragOver={(e) => handleDropZoneDragOver(e, index + 1)}
-                          onDragLeave={handleDropZoneDragLeave}
-                          onDrop={(e) => handleDropZoneDrop(e, index + 1)}
+                        {/* Add Step Button After Bundle */}
+                        <AddStepButton
+                          onAdd={() => handleAddStep(null, null, null, item.id)}
+                          position={{ position: 'after-bundle', afterBundleId: item.id }}
+                          onDrop={handleDropZoneDrop}
+                          isDragging={!!draggedStep || !!draggedBundle}
                         />
                       </React.Fragment>
                     )
@@ -365,13 +598,12 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
                           isDragging={draggedStep?.id === item.id}
                         />
 
-                        {/* Drop Zone After This Step */}
-                        <DropZone
-                          isActive={activeDropZone === index + 1}
-                          position={index + 1}
-                          onDragOver={(e) => handleDropZoneDragOver(e, index + 1)}
-                          onDragLeave={handleDropZoneDragLeave}
-                          onDrop={(e) => handleDropZoneDrop(e, index + 1)}
+                        {/* Add Step Button After This Step */}
+                        <AddStepButton
+                          onAdd={() => handleAddStep(null, null, item.id)}
+                          position={{ position: 'after-step', afterStepId: item.id }}
+                          onDrop={handleDropZoneDrop}
+                          isDragging={!!draggedStep || !!draggedBundle}
                         />
                       </React.Fragment>
                     )
