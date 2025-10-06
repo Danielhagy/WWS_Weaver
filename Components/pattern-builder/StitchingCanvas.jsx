@@ -143,6 +143,9 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
     setSteps(steps.map(step =>
       step.id === stepId ? { ...step, loopBundleId: bundleId } : step
     ))
+    // Clear drag state when step is added to bundle
+    setDraggedStep(null)
+    setActiveDropZone(null)
   }
 
   const handleRemoveStepFromBundle = (stepId) => {
