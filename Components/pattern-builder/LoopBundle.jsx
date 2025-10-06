@@ -168,6 +168,7 @@ export default function LoopBundle({
                     step={step}
                     onClick={() => onStepClick(step.id)}
                     onDelete={() => onDeleteStep(step.id)}
+                    previousSteps={bundleSteps.slice(0, index)}
                     onDragStart={onDragStart}
                     onDragEnd={onDragEnd}
                     isInBundle={true}
