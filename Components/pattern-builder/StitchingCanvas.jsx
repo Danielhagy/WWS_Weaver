@@ -304,32 +304,75 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
                 />
               )}
 
-              {/* Step Blocks with Drop Zones */}
-              {steps.map((step, index) => (
-                <React.Fragment key={step.id}>
-                  <StepBlock
-                    step={step}
-                    isSelected={selectedStepId === step.id}
-                    onClick={() => handleStepClick(step.id)}
-                    onDelete={() => handleDeleteStep(step.id)}
-                    previousSteps={steps.slice(0, index)}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                    onDragOver={handleStepDragOver}
-                    onDrop={handleStepDrop}
-                    isDragging={draggedStep?.id === step.id}
-                  />
+              {/* Render Loop Bundles and Independent Steps */}
+              {(() => {
+                // Get steps not in any bundle
+                const independentSteps = steps.filter(s => !s.loopBundleId)
 
-                  {/* Drop Zone After This Step */}
-                  <DropZone
-                    isActive={activeDropZone === index + 1}
-                    position={index + 1}
-                    onDragOver={(e) => handleDropZoneDragOver(e, index + 1)}
-                    onDragLeave={handleDropZoneDragLeave}
-                    onDrop={(e) => handleDropZoneDrop(e, index + 1)}
-                  />
-                </React.Fragment>
-              ))}
+                // Combine bundles and independent steps, then sort by order
+                const allItems = [...loopBundles, ...independentSteps]
+                  .sort((a, b) => (a.order || 0) - (b.order || 0))
+
+                return allItems.map((item, index) => {
+                  const isBundle = item.id?.startsWith('bundle-')
+
+                  if (isBundle) {
+                    // Render Loop Bundle
+                    return (
+                      <React.Fragment key={item.id}>
+                        <LoopBundle
+                          bundle={item}
+                          steps={steps}
+                          webhookConfig={webhookConfig}
+                          onUpdateBundle={handleUpdateBundle}
+                          onDeleteBundle={handleDeleteBundle}
+                          onStepClick={handleStepClick}
+                          onDeleteStep={handleDeleteStep}
+                          onDragStart={handleDragStart}
+                          onDragEnd={handleDragEnd}
+                        />
+
+                        {/* Drop Zone After Bundle */}
+                        <DropZone
+                          isActive={activeDropZone === index + 1}
+                          position={index + 1}
+                          onDragOver={(e) => handleDropZoneDragOver(e, index + 1)}
+                          onDragLeave={handleDropZoneDragLeave}
+                          onDrop={(e) => handleDropZoneDrop(e, index + 1)}
+                        />
+                      </React.Fragment>
+                    )
+                  } else {
+                    // Render Independent Step
+                    const stepIndex = steps.findIndex(s => s.id === item.id)
+                    return (
+                      <React.Fragment key={item.id}>
+                        <StepBlock
+                          step={item}
+                          isSelected={selectedStepId === item.id}
+                          onClick={() => handleStepClick(item.id)}
+                          onDelete={() => handleDeleteStep(item.id)}
+                          previousSteps={steps.slice(0, stepIndex)}
+                          onDragStart={handleDragStart}
+                          onDragEnd={handleDragEnd}
+                          onDragOver={handleStepDragOver}
+                          onDrop={handleStepDrop}
+                          isDragging={draggedStep?.id === item.id}
+                        />
+
+                        {/* Drop Zone After This Step */}
+                        <DropZone
+                          isActive={activeDropZone === index + 1}
+                          position={index + 1}
+                          onDragOver={(e) => handleDropZoneDragOver(e, index + 1)}
+                          onDragLeave={handleDropZoneDragLeave}
+                          onDrop={(e) => handleDropZoneDrop(e, index + 1)}
+                        />
+                      </React.Fragment>
+                    )
+                  }
+                })
+              })()}
 
               {/* Add Step Prompt */}
               {steps.length === 0 && (
@@ -361,6 +404,9 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
             previousSteps={selectedStep ? steps.slice(0, steps.findIndex(s => s.id === selectedStep.id)) : []}
             webhookConfig={webhookConfig}
             onExpandChange={handleExpandChange}
+            loopBundles={loopBundles}
+            onAddStepToBundle={handleAddStepToBundle}
+            onRemoveStepFromBundle={handleRemoveStepFromBundle}
           />
         </div>
       </div>

@@ -11,7 +11,7 @@ import { Integration } from '@/entities/Integration'
 import { useNavigate } from 'react-router-dom'
 import { createPageUrl } from '@/utils'
 
-export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previousSteps, webhookConfig, onExpandChange }) {
+export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previousSteps, webhookConfig, onExpandChange, loopBundles, onAddStepToBundle, onRemoveStepFromBundle }) {
   const navigate = useNavigate()
   const [localStep, setLocalStep] = useState(step || {})
   const [stepType, setStepType] = useState(step?.stepType || 'new') // 'new' or 'existing'
@@ -350,6 +350,51 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
                 )}
               </p>
             </div>
+          </div>
+        )}
+
+        {/* Loop Bundle Assignment */}
+        {((stepType === 'new' && localStep.webService) || (stepType === 'existing' && localStep.existingStitchId)) && loopBundles && loopBundles.length > 0 && (
+          <div className="space-y-2">
+            <Label htmlFor="loop-bundle">Loop Bundle (Optional)</Label>
+            <Select
+              value={localStep.loopBundleId || 'none'}
+              onValueChange={(value) => {
+                if (value === 'none') {
+                  if (localStep.loopBundleId) {
+                    onRemoveStepFromBundle(step.id)
+                  }
+                  handleFieldChange('loopBundleId', null)
+                } else {
+                  onAddStepToBundle(step.id, value)
+                  handleFieldChange('loopBundleId', value)
+                }
+              }}
+            >
+              <SelectTrigger id="loop-bundle">
+                <SelectValue placeholder="Independent (not in a loop)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">
+                  <span className="flex items-center gap-2">
+                    <span>Independent (not in a loop)</span>
+                  </span>
+                </SelectItem>
+                {loopBundles.map((bundle) => (
+                  <SelectItem key={bundle.id} value={bundle.id}>
+                    <span className="flex items-center gap-2">
+                      <Repeat className="w-3 h-3" />
+                      <span>{bundle.name}</span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {localStep.loopBundleId && (
+              <p className="text-xs text-muted-foreground">
+                This step will execute as part of the loop bundle
+              </p>
+            )}
           </div>
         )}
 
