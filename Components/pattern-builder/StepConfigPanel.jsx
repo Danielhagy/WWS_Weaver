@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { X, Settings, FlaskConical, Save, Zap, FileText, Layers, ExternalLink, Eye, EyeOff } from 'lucide-react'
+import { X, Settings, FlaskConical, Save, Zap, FileText, Layers, ExternalLink, Eye, EyeOff, Target, Repeat, Info } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -272,6 +272,84 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
                 ))}
               </SelectContent>
             </Select>
+          </div>
+        )}
+
+        {/* Execution Mode Selector (shown when web service is selected) */}
+        {((stepType === 'new' && localStep.webService) || (stepType === 'existing' && localStep.existingStitchId)) && (
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold">Execution Mode</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <Card
+                className={`p-4 cursor-pointer transition-all ${
+                  localStep.executionMode === 'once_per_file'
+                    ? 'border-2 border-accent-teal bg-gradient-to-br from-accent-teal/10 to-accent-teal/5'
+                    : 'border-2 border-soft-gray hover:border-accent-teal/50'
+                }`}
+                onClick={() => handleFieldChange('executionMode', 'once_per_file')}
+                data-testid="execution-mode-once-per-file"
+              >
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    localStep.executionMode === 'once_per_file' ? 'bg-accent-teal' : 'bg-soft-gray'
+                  }`}>
+                    <Target className={`w-6 h-6 ${
+                      localStep.executionMode === 'once_per_file' ? 'text-white' : 'text-muted-foreground'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">Once Per File</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Executes once using first row
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card
+                className={`p-4 cursor-pointer transition-all ${
+                  localStep.executionMode === 'once_per_row' || !localStep.executionMode
+                    ? 'border-2 border-accent-teal bg-gradient-to-br from-accent-teal/10 to-accent-teal/5'
+                    : 'border-2 border-soft-gray hover:border-accent-teal/50'
+                }`}
+                onClick={() => handleFieldChange('executionMode', 'once_per_row')}
+                data-testid="execution-mode-once-per-row"
+              >
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    localStep.executionMode === 'once_per_row' || !localStep.executionMode ? 'bg-accent-teal' : 'bg-soft-gray'
+                  }`}>
+                    <Repeat className={`w-6 h-6 ${
+                      localStep.executionMode === 'once_per_row' || !localStep.executionMode ? 'text-white' : 'text-muted-foreground'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold">For Each Row</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Loops through every row
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Help text based on selected mode */}
+            <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-800">
+                {localStep.executionMode === 'once_per_file' ? (
+                  <span>
+                    <strong>Once Per File:</strong> This step will execute exactly once using data from the first row.
+                    Ideal for creating parent records (e.g., Create Position) that will be referenced by subsequent steps.
+                  </span>
+                ) : (
+                  <span>
+                    <strong>For Each Row (Default):</strong> This step will execute for every row in your file.
+                    Ideal for bulk operations (e.g., Contract multiple workers) or child records.
+                  </span>
+                )}
+              </p>
+            </div>
           </div>
         )}
 
