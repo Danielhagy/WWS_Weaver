@@ -14,7 +14,7 @@ export const PUT_POSITION_FIELDS = [
     typeOptions: ["Organization_Reference_ID", "Supervisory_Organization_ID", "Cost_Center_Reference_ID"],
     defaultType: "Organization_Reference_ID",
     description: "The supervisory organization that will own this position",
-    category: "Basic Information",
+    category: "Required Mappings",
     helpText: "REQUIRED: Enter the ID of the supervisory organization (e.g., SUPERVISORY_ORG-6-123). Select the type from the dropdown."
   },
 

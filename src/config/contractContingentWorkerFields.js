@@ -161,10 +161,10 @@ export const CONTRACT_CONTINGENT_WORKER_CHOICE_GROUPS = [
             xmlPath: "Contract_Contingent_Worker_Data.Applicant_Data.Personal_Data.Contact_Data.Phone_Data.Country_ISO_Code",
             required: false,
             type: "text_with_type",
-            typeOptions: ["ISO_3166-1_Alpha-2_Code", "ISO_3166-1_Alpha-3_Code", "WID"],
-            defaultType: "ISO_3166-1_Alpha-2_Code",
-            description: "Country ISO code for phone (e.g., US, GB, CA)",
-            helpText: "REQUIRED if Phone Number is provided. Use 2-letter ISO code"
+            typeOptions: ["ISO_3166-1_Alpha-3_Code"],
+            defaultType: "ISO_3166-1_Alpha-3_Code",
+            description: "Country ISO code for phone (e.g., USA, GBR, CAN)",
+            helpText: "REQUIRED if Phone Number is provided. Use 3-letter ISO code (e.g., USA, GBR, CAN)"
           },
           {
             name: "Phone Device Type",
@@ -351,7 +351,7 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
     required: true,
     type: "date",
     description: "The date the contract takes effect",
-    category: "Contract Details",
+    category: "Required Mappings",
     helpText: "REQUIRED: Format YYYY-MM-DD. The effective date when the contract begins."
   },
   {
@@ -395,13 +395,13 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
   {
     name: "Contract Worker Type ID",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Contract_Worker_Type_Reference.ID",
-    required: false,
+    required: true,
     type: "text_with_type",
     typeOptions: ["Contingent_Worker_Type_ID", "WID"],
     defaultType: "Contingent_Worker_Type_ID",
     description: "Type of contingent worker",
-    category: "Contract Details",
-    helpText: "Optional: Classification (e.g., Independent_Contractor, Temporary_Worker, Consultant)"
+    category: "Required Mappings",
+    helpText: "REQUIRED: Classification (e.g., Independent_Contractor, Temporary_Worker, Consultant)"
   },
   {
     name: "Create Purchase Order",
@@ -464,13 +464,13 @@ export const CONTRACT_CONTINGENT_WORKER_FIELDS = [
   {
     name: "Location ID",
     xmlPath: "Contract_Contingent_Worker_Data.Contract_Contingent_Worker_Event_Data.Position_Details.Location_Reference.ID",
-    required: false,
+    required: true,
     type: "text_with_type",
     typeOptions: ["Location_ID", "WID"],
     defaultType: "Location_ID",
     description: "Work location for the position",
-    category: "Position Details",
-    helpText: "Optional: Physical work location. If empty, uses position restriction's location."
+    category: "Required Mappings",
+    helpText: "REQUIRED: Physical work location for the position."
   },
   {
     name: "Position Time Type ID",
@@ -635,8 +635,8 @@ export function getFieldByName(name) {
 // Field Statistics
 export const FIELD_STATS = {
   total: 29,
-  required: 2, // Contract Start Date + one pre-hire reference (choice)
-  optional: 27,
+  required: 4, // Contract Start Date + Contract Worker Type ID + Location ID + one pre-hire reference (choice)
+  optional: 25,
   categories: 6
 };
 

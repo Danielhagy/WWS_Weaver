@@ -22,7 +22,7 @@ export const CREATE_POSITION_FIELDS = [
     typeOptions: ["Organization_Reference_ID", "WID", "Supervisory_Organization_ID", "Cost_Center_Reference_ID"],
     defaultType: "Organization_Reference_ID",
     description: "The supervisory organization that will own this position",
-    category: "Basic Information",
+    category: "Required Mappings",
     helpText: "REQUIRED: Enter the ID of the supervisory organization. This is the only mandatory field."
   },
 

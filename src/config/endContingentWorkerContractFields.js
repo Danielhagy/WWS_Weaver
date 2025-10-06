@@ -18,7 +18,7 @@ export const END_CONTINGENT_WORKER_CONTRACT_FIELDS = [
     typeOptions: ["WID", "Contingent_Worker_ID", "Employee_ID"],
     defaultType: "Contingent_Worker_ID",
     description: "Contract Worker whose contract is being ended",
-    category: "Basic Information",
+    category: "Required Mappings",
     helpText: "REQUIRED: Enter the ID of the contingent worker. Only workers you have access to can be ended."
   },
 
@@ -28,7 +28,7 @@ export const END_CONTINGENT_WORKER_CONTRACT_FIELDS = [
     required: true,
     type: "date",
     description: "Date the contract will end",
-    category: "Basic Information",
+    category: "Required Mappings",
     helpText: "REQUIRED: Format: YYYY-MM-DD (e.g., 2024-12-31). This is the official contract end date."
   },
 
@@ -40,7 +40,7 @@ export const END_CONTINGENT_WORKER_CONTRACT_FIELDS = [
     typeOptions: ["WID", "Termination_Reason_ID", "Termination_Subcategory_ID"],
     defaultType: "Termination_Reason_ID",
     description: "Primary reason for ending the contract",
-    category: "Termination Details",
+    category: "Required Mappings",
     helpText: "REQUIRED: Specify the primary termination reason (e.g., Contract_Completed, Performance, Voluntary)"
   },
 
