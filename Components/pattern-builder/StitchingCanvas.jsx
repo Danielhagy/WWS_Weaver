@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react'
-import { Plus, Sparkles } from 'lucide-react'
+import { Plus, Sparkles, Repeat } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import StepBlock from './StepBlock'
@@ -7,6 +7,7 @@ import StepConfigPanel from './StepConfigPanel'
 import TriggerBlock from './TriggerBlock'
 import WebhookConfigPanel from './WebhookConfigPanel'
 import DropZone from './DropZone'
+import LoopBundle from './LoopBundle'
 
 export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWebhookConfig }) {
   const [selectedStepId, setSelectedStepId] = useState(null)
@@ -15,6 +16,7 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
   const [isConfigExpanded, setIsConfigExpanded] = useState(false)
   const [draggedStep, setDraggedStep] = useState(null)
   const [activeDropZone, setActiveDropZone] = useState(null) // Track which drop zone is active
+  const [loopBundles, setLoopBundles] = useState([]) // Track loop bundles
 
   // Helper function to convert legacy field_mappings to new mapping format
   const convertLegacyMappings = (fieldMappings) => {
@@ -109,6 +111,44 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
     if (selectedStepId === stepId) {
       handleConfigClose()
     }
+  }
+
+  // Loop Bundle handlers
+  const handleCreateLoopBundle = () => {
+    const newBundle = {
+      id: `bundle-${Date.now()}`,
+      name: `Loop Bundle ${loopBundles.length + 1}`,
+      order: steps.length + loopBundles.length + 1
+    }
+    setLoopBundles([...loopBundles, newBundle])
+  }
+
+  const handleUpdateBundle = (bundleId, updates) => {
+    setLoopBundles(loopBundles.map(bundle =>
+      bundle.id === bundleId ? { ...bundle, ...updates } : bundle
+    ))
+  }
+
+  const handleDeleteBundle = (bundleId) => {
+    // Remove bundle and clear loopBundleId from steps
+    setLoopBundles(loopBundles.filter(b => b.id !== bundleId))
+    setSteps(steps.map(step =>
+      step.loopBundleId === bundleId
+        ? { ...step, loopBundleId: null }
+        : step
+    ))
+  }
+
+  const handleAddStepToBundle = (stepId, bundleId) => {
+    setSteps(steps.map(step =>
+      step.id === stepId ? { ...step, loopBundleId: bundleId } : step
+    ))
+  }
+
+  const handleRemoveStepFromBundle = (stepId) => {
+    setSteps(steps.map(step =>
+      step.id === stepId ? { ...step, loopBundleId: null } : step
+    ))
   }
 
   // Drag and drop handlers
@@ -224,14 +264,25 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
                   </p>
                 </div>
               </div>
-              <Button
-                onClick={handleAddStep}
-                className="gap-2"
-                data-testid="add-step-button"
-              >
-                <Plus className="w-4 h-4" />
-                Add Step
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleAddStep}
+                  className="gap-2"
+                  data-testid="add-step-button"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Step
+                </Button>
+                <Button
+                  onClick={handleCreateLoopBundle}
+                  variant="outline"
+                  className="gap-2 border-accent-teal text-accent-teal hover:bg-accent-teal hover:text-white"
+                  data-testid="create-loop-bundle-button"
+                >
+                  <Repeat className="w-4 h-4" />
+                  Create Loop Bundle
+                </Button>
+              </div>
             </div>
 
             {/* Workflow Blocks */}
