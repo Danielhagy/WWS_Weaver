@@ -23,8 +23,8 @@ export default function LoopBundle({
 
   const bundleSteps = steps.filter(step => step.loopBundleId === bundle.id)
   const rowCount = webhookConfig?.type === 'file'
-    ? (webhookConfig.columns?.length > 0 ? 25 : 'N') // Placeholder - would be actual row count
-    : (webhookConfig.attributes?.length > 0 ? 'N' : 'N')
+    ? (webhookConfig?.columns?.length > 0 ? 25 : 'N') // Placeholder - would be actual row count
+    : (webhookConfig?.attributes?.length > 0 ? 'N' : 'N')
 
   const handleSaveName = () => {
     if (editName.trim()) {
