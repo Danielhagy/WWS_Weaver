@@ -15,11 +15,13 @@ export default function LoopBundle({
   onDeleteStep,
   webhookConfig,
   onDragStart,
-  onDragEnd
+  onDragEnd,
+  onAddStepToBundle
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isEditingName, setIsEditingName] = useState(false)
   const [editName, setEditName] = useState(bundle.name)
+  const [isDragOver, setIsDragOver] = useState(false)
 
   const bundleSteps = steps.filter(step => step.loopBundleId === bundle.id)
   const rowCount = webhookConfig?.type === 'file'
@@ -42,8 +44,36 @@ export default function LoopBundle({
     }
   }
 
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+
+    const stepId = e.dataTransfer.getData('stepId')
+    if (stepId && onAddStepToBundle) {
+      onAddStepToBundle(stepId, bundle.id)
+    }
+  }
+
   return (
-    <Card className="border-2 border-accent-teal/50 bg-gradient-to-br from-accent-teal/5 via-transparent to-accent-teal/5 shadow-lg overflow-hidden">
+    <Card
+      className={`border-2 ${isDragOver ? 'border-accent-teal border-4 bg-accent-teal/20' : 'border-accent-teal/50'} bg-gradient-to-br from-accent-teal/5 via-transparent to-accent-teal/5 shadow-lg overflow-hidden transition-all`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       {/* Bundle Header */}
       <div className="bg-gradient-to-r from-accent-teal/20 to-accent-teal/10 border-b-2 border-accent-teal/30 p-3">
         <div className="flex items-center justify-between">

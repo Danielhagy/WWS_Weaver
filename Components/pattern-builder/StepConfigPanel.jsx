@@ -298,7 +298,7 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
                     }`} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold">Once Per File</p>
+                    <p className="text-sm font-semibold">Single Execution</p>
                     <p className="text-xs text-muted-foreground mt-1">
                       Executes once using first row
                     </p>
@@ -339,7 +339,7 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
               <p className="text-xs text-blue-800">
                 {localStep.executionMode === 'once_per_file' ? (
                   <span>
-                    <strong>Once Per File:</strong> This step will execute exactly once using data from the first row.
+                    <strong>Single Execution:</strong> This step will execute exactly once using data from the first row.
                     Ideal for creating parent records (e.g., Create Position) that will be referenced by subsequent steps.
                   </span>
                 ) : (
@@ -353,10 +353,10 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
           </div>
         )}
 
-        {/* Loop Bundle Assignment */}
+        {/* Loop Assignment */}
         {((stepType === 'new' && localStep.webService) || (stepType === 'existing' && localStep.existingStitchId)) && loopBundles && loopBundles.length > 0 && (
           <div className="space-y-2">
-            <Label htmlFor="loop-bundle">Loop Bundle (Optional)</Label>
+            <Label htmlFor="loop-bundle">Loop (Optional)</Label>
             <Select
               value={localStep.loopBundleId || 'none'}
               onValueChange={(value) => {
@@ -392,7 +392,7 @@ export default function StepConfigPanel({ step, isOpen, onClose, onUpdate, previ
             </Select>
             {localStep.loopBundleId && (
               <p className="text-xs text-muted-foreground">
-                This step will execute as part of the loop bundle
+                This step will execute as part of the loop
               </p>
             )}
           </div>

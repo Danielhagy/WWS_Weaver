@@ -113,11 +113,11 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
     }
   }
 
-  // Loop Bundle handlers
+  // Loop handlers
   const handleCreateLoopBundle = () => {
     const newBundle = {
       id: `bundle-${Date.now()}`,
-      name: `Loop Bundle ${loopBundles.length + 1}`,
+      name: `Loop ${loopBundles.length + 1}`,
       order: steps.length + loopBundles.length + 1
     }
     setLoopBundles([...loopBundles, newBundle])
@@ -156,6 +156,7 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
     setDraggedStep(step)
     e.dataTransfer.effectAllowed = 'move'
     e.dataTransfer.setData('text/html', e.target)
+    e.dataTransfer.setData('stepId', step.id) // Add stepId for loop bundle drops
   }
 
   const handleDragEnd = () => {
@@ -277,10 +278,10 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
                   onClick={handleCreateLoopBundle}
                   variant="outline"
                   className="gap-2 border-accent-teal text-accent-teal hover:bg-accent-teal hover:text-white"
-                  data-testid="create-loop-bundle-button"
+                  data-testid="create-loop-button"
                 >
                   <Repeat className="w-4 h-4" />
-                  Create Loop Bundle
+                  Loop
                 </Button>
               </div>
             </div>
@@ -330,6 +331,7 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
                           onDeleteStep={handleDeleteStep}
                           onDragStart={handleDragStart}
                           onDragEnd={handleDragEnd}
+                          onAddStepToBundle={handleAddStepToBundle}
                         />
 
                         {/* Drop Zone After Bundle */}
