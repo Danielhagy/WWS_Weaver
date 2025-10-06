@@ -17,33 +17,145 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'WWS Weaver Server is running' });
 });
 
-// Test Workday credentials endpoint
-app.post('/api/workday/test-credentials', async (req, res) => {
+// OAuth 2.0 Token Generation endpoint
+app.post('/api/workday/oauth/token', async (req, res) => {
   try {
-    const { tenantUrl, username, password, service } = req.body;
+    const { tokenUrl, clientId, clientSecret } = req.body;
 
-    if (!tenantUrl || !username || !password) {
+    if (!tokenUrl || !clientId || !clientSecret) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required credentials: tenantUrl, username, and password are required'
+        error: 'Missing required OAuth parameters: tokenUrl, clientId, and clientSecret are required'
+      });
+    }
+
+    // Prepare the token request (client_credentials grant type)
+    const tokenRequestData = new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_id: clientId,
+      client_secret: clientSecret
+    });
+
+    // Request the token
+    const response = await axios.post(tokenUrl, tokenRequestData.toString(), {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      timeout: 30000
+    });
+
+    if (response.data.access_token) {
+      res.json({
+        success: true,
+        access_token: response.data.access_token,
+        token_type: response.data.token_type || 'Bearer',
+        expires_in: response.data.expires_in,
+        message: 'OAuth token generated successfully'
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'Token generation failed',
+        details: 'No access token received from OAuth server'
+      });
+    }
+
+  } catch (error) {
+    console.error('Error generating OAuth token:', error);
+
+    if (error.response) {
+      return res.status(error.response.status).json({
+        success: false,
+        error: 'OAuth token generation failed',
+        details: error.response.data.error_description || error.response.data.error || 'Invalid client credentials'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'An error occurred while generating OAuth token',
+      details: error.message
+    });
+  }
+});
+
+// Helper function to build SOAP headers based on auth type
+function buildSoapHeaders(authType, authData) {
+  const headers = {
+    'Content-Type': 'text/xml;charset=UTF-8',
+    'SOAPAction': ''
+  };
+
+  if (authType === 'oauth' || authType === 'refresh_token') {
+    // Bearer token authentication
+    headers['Authorization'] = `Bearer ${authData.token}`;
+  }
+  // For basic auth, credentials are in the SOAP envelope itself
+
+  return headers;
+}
+
+// Helper function to build SOAP envelope with authentication
+function buildAuthenticatedSoapEnvelope(soapBody, authType, authData) {
+  let securityHeader = '';
+
+  if (authType === 'basic') {
+    // WS-Security UsernameToken for basic auth
+    securityHeader = `
+    <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+      <wsse:UsernameToken>
+        <wsse:Username>${authData.username}</wsse:Username>
+        <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">${authData.password}</wsse:Password>
+      </wsse:UsernameToken>
+    </wsse:Security>`;
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <env:Header>${securityHeader}</env:Header>
+  <env:Body>${soapBody}</env:Body>
+</env:Envelope>`;
+}
+
+// Test Workday credentials endpoint (supports all auth types)
+app.post('/api/workday/test-credentials', async (req, res) => {
+  try {
+    const { tenantUrl, authType, username, password, refreshToken, oauthToken, service } = req.body;
+
+    if (!tenantUrl) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required parameter: tenantUrl'
+      });
+    }
+
+    // Validate auth type specific credentials
+    if (authType === 'basic' && (!username || !password)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Basic auth requires username and password'
+      });
+    }
+
+    if (authType === 'refresh_token' && !refreshToken) {
+      return res.status(400).json({
+        success: false,
+        error: 'Refresh token authentication requires a refresh token'
+      });
+    }
+
+    if (authType === 'oauth' && !oauthToken) {
+      return res.status(400).json({
+        success: false,
+        error: 'OAuth authentication requires an access token'
       });
     }
 
     // Construct the full Workday API URL
     const workdayUrl = `${tenantUrl}/${service || 'Human_Resources'}`;
 
-    // Simple SOAP envelope for testing credentials (Get_Workers with minimal params)
-    const soapEnvelope = `<?xml version="1.0" encoding="UTF-8"?>
-<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <env:Header>
-    <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
-      <wsse:UsernameToken>
-        <wsse:Username>${username}</wsse:Username>
-        <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">${password}</wsse:Password>
-      </wsse:UsernameToken>
-    </wsse:Security>
-  </env:Header>
-  <env:Body>
+    // Simple Get_Workers SOAP body for testing
+    const soapBody = `
     <bsvc:Get_Workers_Request xmlns:bsvc="urn:com.workday/bsvc" bsvc:version="v39.1">
       <bsvc:Request_Criteria>
         <bsvc:Transaction_Log_Criteria_Data>
@@ -58,17 +170,26 @@ app.post('/api/workday/test-credentials', async (req, res) => {
         <bsvc:Include_Personal_Information>false</bsvc:Include_Personal_Information>
         <bsvc:Include_Employment_Information>false</bsvc:Include_Employment_Information>
       </bsvc:Response_Group>
-    </bsvc:Get_Workers_Request>
-  </env:Body>
-</env:Envelope>`;
+    </bsvc:Get_Workers_Request>`;
+
+    // Build authentication data
+    let authData = {};
+    if (authType === 'basic') {
+      authData = { username, password };
+    } else if (authType === 'refresh_token') {
+      authData = { token: refreshToken };
+    } else if (authType === 'oauth') {
+      authData = { token: oauthToken };
+    }
+
+    // Build SOAP envelope and headers
+    const soapEnvelope = buildAuthenticatedSoapEnvelope(soapBody, authType || 'basic', authData);
+    const headers = buildSoapHeaders(authType || 'basic', authData);
 
     // Make the SOAP request to Workday
     const response = await axios.post(workdayUrl, soapEnvelope, {
-      headers: {
-        'Content-Type': 'text/xml;charset=UTF-8',
-        'SOAPAction': ''
-      },
-      timeout: 30000 // 30 second timeout
+      headers,
+      timeout: 30000
     });
 
     // Parse the response to check for errors
@@ -81,16 +202,18 @@ app.post('/api/workday/test-credentials', async (req, res) => {
       return res.status(401).json({
         success: false,
         error: 'Authentication failed',
-        details: fault.faultstring || 'Invalid credentials or insufficient permissions'
+        details: fault.faultstring || 'Invalid credentials or insufficient permissions',
+        authType: authType || 'basic'
       });
     }
 
     // If we got here, credentials are valid
     res.json({
       success: true,
-      message: 'Credentials are valid! Successfully connected to Workday.',
+      message: `Credentials are valid! Successfully connected to Workday using ${authType === 'oauth' ? 'OAuth 2.0' : authType === 'refresh_token' ? 'Refresh Token' : 'Basic Auth'}.`,
       tenantUrl,
-      service: service || 'Human_Resources'
+      service: service || 'Human_Resources',
+      authType: authType || 'basic'
     });
 
   } catch (error) {
@@ -98,12 +221,11 @@ app.post('/api/workday/test-credentials', async (req, res) => {
 
     // Handle specific error cases
     if (error.response) {
-      // Workday returned an error response
       if (error.response.status === 401) {
         return res.status(401).json({
           success: false,
           error: 'Authentication failed',
-          details: 'Invalid username or password'
+          details: 'Invalid credentials or expired token'
         });
       } else if (error.response.status === 404) {
         return res.status(404).json({
@@ -126,7 +248,6 @@ app.post('/api/workday/test-credentials', async (req, res) => {
       });
     }
 
-    // Generic error
     res.status(500).json({
       success: false,
       error: 'An error occurred while testing credentials',
@@ -135,34 +256,55 @@ app.post('/api/workday/test-credentials', async (req, res) => {
   }
 });
 
-// Proxy endpoint for making Workday SOAP requests
+// Proxy endpoint for making Workday SOAP requests (supports all auth types)
 app.post('/api/workday/soap', async (req, res) => {
   try {
-    const { tenantUrl, username, password, soapEnvelope, service } = req.body;
+    const { tenantUrl, authType, username, password, refreshToken, oauthToken, soapBody, service } = req.body;
 
-    if (!tenantUrl || !username || !password || !soapEnvelope) {
+    if (!tenantUrl || !soapBody) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required parameters'
+        error: 'Missing required parameters: tenantUrl and soapBody'
       });
     }
 
     const workdayUrl = `${tenantUrl}/${service || 'Human_Resources'}`;
 
-    // Replace credentials placeholder in SOAP envelope if present
-    let finalSoapEnvelope = soapEnvelope;
-    if (soapEnvelope.includes('${username}') || soapEnvelope.includes('${password}')) {
-      finalSoapEnvelope = soapEnvelope
-        .replace(/\${username}/g, username)
-        .replace(/\${password}/g, password);
+    // Build authentication data
+    let authData = {};
+    if (authType === 'basic') {
+      if (!username || !password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Basic auth requires username and password'
+        });
+      }
+      authData = { username, password };
+    } else if (authType === 'refresh_token') {
+      if (!refreshToken) {
+        return res.status(400).json({
+          success: false,
+          error: 'Refresh token authentication requires a refresh token'
+        });
+      }
+      authData = { token: refreshToken };
+    } else if (authType === 'oauth') {
+      if (!oauthToken) {
+        return res.status(400).json({
+          success: false,
+          error: 'OAuth authentication requires an access token'
+        });
+      }
+      authData = { token: oauthToken };
     }
 
-    const response = await axios.post(workdayUrl, finalSoapEnvelope, {
-      headers: {
-        'Content-Type': 'text/xml;charset=UTF-8',
-        'SOAPAction': ''
-      },
-      timeout: 60000 // 60 second timeout for data operations
+    // Build SOAP envelope and headers
+    const soapEnvelope = buildAuthenticatedSoapEnvelope(soapBody, authType || 'basic', authData);
+    const headers = buildSoapHeaders(authType || 'basic', authData);
+
+    const response = await axios.post(workdayUrl, soapEnvelope, {
+      headers,
+      timeout: 60000
     });
 
     res.set('Content-Type', 'text/xml');
@@ -188,5 +330,6 @@ app.listen(PORT, () => {
   console.log(`🚀 WWS Weaver Server running on http://localhost:${PORT}`);
   console.log(`📝 Health check: http://localhost:${PORT}/health`);
   console.log(`🔐 Test credentials: POST http://localhost:${PORT}/api/workday/test-credentials`);
+  console.log(`🔑 OAuth token: POST http://localhost:${PORT}/api/workday/oauth/token`);
   console.log(`🌐 SOAP proxy: POST http://localhost:${PORT}/api/workday/soap`);
 });
