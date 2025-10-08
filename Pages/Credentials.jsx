@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Key, Plus, CheckCircle, XCircle, Loader2, Edit2, Trash2 } from "lucide-react";
+import { Key, Plus, CheckCircle, XCircle, Loader2, Edit2, Trash2, Zap, AlertCircle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -13,6 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import VersionSelector, { DEFAULT_VERSION } from "@/components/VersionSelector";
+
+const API_BASE_URL = "http://localhost:3001/api/workday";
 
 const DATA_CENTERS = [
   { value: "WD2", label: "WD2" },
@@ -25,11 +28,14 @@ export default function Credentials() {
   const [showForm, setShowForm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [testingId, setTestingId] = useState(null);
+  const [testResults, setTestResults] = useState({});
   const [formData, setFormData] = useState({
     tenant_name: "",
     username: "",
     password: "",
-    data_center: "WD2"
+    data_center: "WD2",
+    webservice_version: DEFAULT_VERSION
   });
 
   useEffect(() => {
@@ -49,7 +55,8 @@ export default function Credentials() {
       tenant_name: cred.tenant_name,
       username: cred.username,
       password: "", // Don't populate password for security
-      data_center: cred.data_center
+      data_center: cred.data_center,
+      webservice_version: cred.webservice_version || DEFAULT_VERSION
     });
     setShowForm(true);
   };
@@ -58,6 +65,63 @@ export default function Credentials() {
     if (confirm("Are you sure you want to delete this credential?")) {
       await WorkdayCredential.delete(id);
       loadCredentials();
+    }
+  };
+
+  const handleTestConnection = async (cred) => {
+    setTestingId(cred.id);
+    setTestResults({ ...testResults, [cred.id]: null });
+
+    try {
+      // Decrypt the password (reverse of btoa)
+      const password = atob(cred.isu_password_encrypted);
+
+      const response = await fetch(`${API_BASE_URL}/test-credentials`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tenantUrl: cred.tenant_url,
+          username: cred.isu_username,
+          password: password,
+          service: 'Human_Resources'
+        })
+      });
+
+      const result = await response.json();
+
+      setTestResults({
+        ...testResults,
+        [cred.id]: {
+          success: result.success,
+          message: result.message || result.error,
+          details: result.details,
+          timestamp: new Date().toISOString()
+        }
+      });
+
+      // Update credential with test result
+      if (result.success) {
+        await WorkdayCredential.update(cred.id, {
+          last_validated: new Date().toISOString(),
+          is_active: true
+        });
+        loadCredentials();
+      }
+    } catch (error) {
+      console.error('Error testing credentials:', error);
+      setTestResults({
+        ...testResults,
+        [cred.id]: {
+          success: false,
+          message: 'Failed to connect to backend server',
+          details: 'Make sure the backend server is running on port 3001',
+          timestamp: new Date().toISOString()
+        }
+      });
+    } finally {
+      setTestingId(null);
     }
   };
 
@@ -77,6 +141,7 @@ export default function Credentials() {
       isu_username: formattedUsername, // Store formatted username for webservice
       isu_password_encrypted: encrypted,
       data_center: formData.data_center,
+      webservice_version: formData.webservice_version,
       tenant_url: `https://${formData.data_center.toLowerCase()}-impl-services1.workday.com/ccx/service/${formData.tenant_name}`,
       is_active: true,
       last_validated: new Date().toISOString()
@@ -92,7 +157,8 @@ export default function Credentials() {
       tenant_name: "",
       username: "",
       password: "",
-      data_center: "WD2"
+      data_center: "WD2",
+      webservice_version: DEFAULT_VERSION
     });
     setShowForm(false);
     setEditingId(null);
@@ -191,6 +257,12 @@ export default function Credentials() {
                     Base URL: https://{(formData.data_center || "wd2").toLowerCase()}-impl-services1.workday.com/ccx/service/{formData.tenant_name || "tenant_name"}
                   </p>
                 </div>
+
+                <VersionSelector
+                  value={formData.webservice_version}
+                  onChange={(version) => setFormData({ ...formData, webservice_version: version })}
+                  required={true}
+                />
               </CardContent>
               <CardFooter className="flex justify-end gap-3">
                 <Button
@@ -199,7 +271,7 @@ export default function Credentials() {
                   onClick={() => {
                     setShowForm(false);
                     setEditingId(null);
-                    setFormData({ tenant_name: "", username: "", password: "", data_center: "WD2" });
+                    setFormData({ tenant_name: "", username: "", password: "", data_center: "WD2", webservice_version: DEFAULT_VERSION });
                   }}
                   disabled={isSaving}
                 >
@@ -279,6 +351,14 @@ export default function Credentials() {
                       <p className="font-medium text-gray-900 mt-1">{cred.data_center}</p>
                     </div>
                     <div>
+                      <p className="text-sm text-gray-500">Web Service Version</p>
+                      <p className="font-medium text-gray-900 mt-1">
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                          {cred.webservice_version || DEFAULT_VERSION}
+                        </Badge>
+                      </p>
+                    </div>
+                    <div>
                       <p className="text-sm text-gray-500">Username</p>
                       <p className="font-medium text-gray-900 mt-1">{cred.username || cred.isu_username?.split('@')[0]}</p>
                     </div>
@@ -291,12 +371,66 @@ export default function Credentials() {
                       <p className="font-medium text-gray-900 mt-1">••••••••</p>
                     </div>
                   </div>
+                  {/* Test Results */}
+                  {testResults[cred.id] && (
+                    <div className={`mb-4 p-3 rounded-lg border ${
+                      testResults[cred.id].success
+                        ? 'bg-green-50 border-green-200'
+                        : 'bg-red-50 border-red-200'
+                    }`}>
+                      <div className="flex items-start gap-2">
+                        {testResults[cred.id].success ? (
+                          <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                        )}
+                        <div className="flex-1">
+                          <p className={`font-semibold ${
+                            testResults[cred.id].success ? 'text-green-800' : 'text-red-800'
+                          }`}>
+                            {testResults[cred.id].message}
+                          </p>
+                          {testResults[cred.id].details && (
+                            <p className={`text-sm mt-1 ${
+                              testResults[cred.id].success ? 'text-green-700' : 'text-red-700'
+                            }`}>
+                              {testResults[cred.id].details}
+                            </p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-1">
+                            Tested: {new Date(testResults[cred.id].timestamp).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleTestConnection(cred)}
+                      disabled={testingId === cred.id}
+                      className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                    >
+                      {testingId === cred.id ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Testing...
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-4 h-4 mr-2" />
+                          Test Connection
+                        </>
+                      )}
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleEdit(cred)}
                       className="flex-1"
+                      disabled={testingId === cred.id}
                     >
                       <Edit2 className="w-4 h-4 mr-2" />
                       Edit
@@ -306,6 +440,7 @@ export default function Credentials() {
                       size="sm"
                       onClick={() => handleDelete(cred.id)}
                       className="flex-1 text-red-600 hover:bg-red-50"
+                      disabled={testingId === cred.id}
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Delete

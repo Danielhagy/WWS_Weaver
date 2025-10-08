@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 export default function StepBlock({ step, isSelected, onClick, onDelete, previousSteps, onDragStart, onDragEnd, onDragOver, onDrop, isDragging }) {
   const isConfigured = step.webService !== null || step.existingStitchId !== null
   const hasMappings = step.mappings && step.mappings.length > 0
-  const hasGoldenThreads = previousSteps.length > 0
+  const hasPreviousNodes = previousSteps.length > 0
 
   return (
     <Card
@@ -60,10 +60,10 @@ export default function StepBlock({ step, isSelected, onClick, onDelete, previou
             <p className="text-sm text-muted-foreground truncate">
               {step.webService || 'Click to configure web service'}
             </p>
-            {hasGoldenThreads && hasMappings && (
+            {hasPreviousNodes && hasMappings && (
               <Badge variant="secondary" className="bg-accent-teal/10 text-accent-teal border-none text-xs flex items-center gap-1">
                 <Zap className="w-3 h-3" />
-                Golden Thread
+                Previous Node
               </Badge>
             )}
           </div>

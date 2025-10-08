@@ -19,24 +19,51 @@ import {
   Globe,
   Sparkles
 } from "lucide-react";
-import { PUT_POSITION_FIELDS, getFieldsByCategory, DYNAMIC_FUNCTIONS, MAPPING_SOURCE_TYPES } from '@/config/putPositionFields';
+import { DYNAMIC_FUNCTIONS } from '@/config/createPositionFields';
+import { MAPPING_SOURCE_TYPES } from '@/config/createPositionFields';
 import { autoMapFields } from '@/utils/fuzzyMatcher';
+import ChoiceFieldSelector from '../field-mapping/ChoiceFieldSelector';
 
-export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsChange, isJsonMode = false, parsedAttributes = [], smartMode = false, allSources = [] }) {
-  const [expandedCategories, setExpandedCategories] = useState({
-    "Basic Information": true,
-    "Position Details": true,
-    "Request Information": false,
-    "Process Options": false
-  });
+export default function EnhancedFieldMapper({
+  csvHeaders,
+  mappings,
+  onMappingsChange,
+  isJsonMode = false,
+  parsedAttributes = [],
+  smartMode = false,
+  allSources = [],
+  fieldDefinitions = [],
+  choiceGroups = [],
+  onChoiceDataChange,
+  initialChoiceSelections = {},
+  initialChoiceFieldValues = {}
+}) {
+  const [expandedCategories, setExpandedCategories] = useState({});
   const [autoMapStats, setAutoMapStats] = useState(null);
   const [isAutoMapping, setIsAutoMapping] = useState(false);
+  const [choiceSelections, setChoiceSelections] = useState(initialChoiceSelections);
+  const [choiceFieldValues, setChoiceFieldValues] = useState(initialChoiceFieldValues);
+  const [choiceFieldErrors, setChoiceFieldErrors] = useState({});
+
+  // Group fields by category
+  const getFieldsByCategory = () => {
+    const categories = {};
+    fieldDefinitions.forEach(field => {
+      const category = field.category || 'Other';
+      if (!categories[category]) {
+        categories[category] = [];
+      }
+      categories[category].push(field);
+    });
+    return categories;
+  };
 
   const fieldsByCategory = getFieldsByCategory();
 
   // Get file columns and global attributes from allSources
   const fileColumns = allSources.filter(s => s.scope === 'row');
-  const globalAttributes = allSources.filter(s => s.scope === 'global');
+  const globalAttributeObjects = allSources.filter(s => s.scope === 'global');
+  const globalAttributes = globalAttributeObjects.map(ga => ga.value || ga);
 
   // Handle auto-mapping
   const handleAutoMap = () => {
@@ -44,7 +71,7 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
 
     // Give UI a moment to update
     setTimeout(() => {
-      const result = autoMapFields(PUT_POSITION_FIELDS, fileColumns, globalAttributes, mappings);
+      const result = autoMapFields(fieldDefinitions, fileColumns, globalAttributes, mappings);
       onMappingsChange(result.mappings);
       setAutoMapStats(result.stats);
       setIsAutoMapping(false);
@@ -73,7 +100,7 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
   const updateMapping = (fieldName, updates) => {
     const newMappings = [...mappings];
     const existingIndex = newMappings.findIndex(m => m.target_field === fieldName);
-    
+
     const mapping = {
       target_field: fieldName,
       ...getMappingForField(fieldName),
@@ -89,12 +116,70 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
     } else if (mapping.source_type !== MAPPING_SOURCE_TYPES.UNMAPPED) {
       newMappings.push(mapping);
     }
-    
+
     onMappingsChange(newMappings);
   };
 
-  const requiredFields = PUT_POSITION_FIELDS.filter(f => f.required);
-  const mappedRequiredFields = requiredFields.filter(f => 
+  // Handle choice group selection
+  const handleChoiceSelect = (choiceGroupId, optionId) => {
+    // For optional choice groups, allow deselection by clicking same option
+    const choiceGroup = choiceGroups.find(cg => cg.id === choiceGroupId);
+    const isOptional = choiceGroup && !choiceGroup.required;
+    const currentSelection = choiceSelections[choiceGroupId];
+
+    let newSelections;
+    if (isOptional && currentSelection === optionId) {
+      // Deselect by removing the selection
+      newSelections = { ...choiceSelections };
+      delete newSelections[choiceGroupId];
+    } else {
+      // Select the new option
+      newSelections = {
+        ...choiceSelections,
+        [choiceGroupId]: optionId
+      };
+    }
+
+    setChoiceSelections(newSelections);
+
+    // Notify parent component
+    if (onChoiceDataChange) {
+      onChoiceDataChange({
+        choiceSelections: newSelections,
+        choiceFieldValues
+      });
+    }
+  };
+
+  const handleChoiceFieldChange = (xmlPath, value) => {
+    const newValues = { ...choiceFieldValues };
+
+    // If clearing the value, remove the key entirely
+    if (value === '' || value === null || value === undefined) {
+      delete newValues[xmlPath];
+      // Also clear any associated type field
+      if (xmlPath.endsWith('_type')) {
+        delete newValues[xmlPath];
+      } else {
+        delete newValues[`${xmlPath}_type`];
+      }
+    } else {
+      newValues[xmlPath] = value;
+    }
+
+    setChoiceFieldValues(newValues);
+
+    // Notify parent component
+    if (onChoiceDataChange) {
+      onChoiceDataChange({
+        choiceSelections,
+        choiceFieldValues: newValues
+      });
+    }
+  };
+
+  const requiredFields = fieldDefinitions.filter(f => f.required);
+  const mappedRequiredFields = requiredFields.filter(f =>
     mappings.some(m => m.target_field === f.name && m.source_type !== MAPPING_SOURCE_TYPES.UNMAPPED)
   );
   const allRequiredMapped = mappedRequiredFields.length === requiredFields.length;
@@ -130,11 +215,11 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-900">
-              Mapping Progress: {totalMapped} / {PUT_POSITION_FIELDS.length} fields
+              Mapping Progress: {totalMapped} / {fieldDefinitions.length} fields
             </p>
             <p className="text-xs text-gray-600 mt-1">
               Required: {mappedRequiredFields.length}/{requiredFields.length} •
-              Optional: {totalMapped - mappedRequiredFields.length}/{PUT_POSITION_FIELDS.length - requiredFields.length}
+              Optional: {totalMapped - mappedRequiredFields.length}/{fieldDefinitions.length - requiredFields.length}
             </p>
           </div>
           <div className="flex gap-2 items-center">
@@ -195,6 +280,31 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
         </Alert>
       )}
 
+      {/* Choice Groups Section */}
+      {choiceGroups && choiceGroups.length > 0 && (
+        <div className="space-y-4">
+          <div className="border-b pb-2">
+            <h3 className="text-lg font-semibold text-gray-900">Choice Groups</h3>
+            <p className="text-sm text-gray-600">Select exactly one option from each group</p>
+          </div>
+          {choiceGroups.map((choiceGroup) => (
+            <ChoiceFieldSelector
+              key={choiceGroup.id}
+              choiceGroup={choiceGroup}
+              selectedOptionId={choiceSelections[choiceGroup.id]}
+              onSelect={(optionId) => handleChoiceSelect(choiceGroup.id, optionId)}
+              fieldValues={choiceFieldValues}
+              onFieldChange={handleChoiceFieldChange}
+              errors={choiceFieldErrors}
+              webhookColumns={fileColumns.map(fc => fc.value || fc)}
+              globalAttributes={globalAttributes}
+              previousSteps={[]}
+              dynamicFunctions={DYNAMIC_FUNCTIONS}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Field Mapping by Category */}
       {Object.entries(fieldsByCategory).map(([category, fields]) => (
         <div key={category} className="border border-gray-200 rounded-lg bg-white">
@@ -226,7 +336,7 @@ export default function EnhancedFieldMapper({ csvHeaders, mappings, onMappingsCh
                   field={field}
                   csvHeaders={csvHeaders}
                   mapping={getMappingForField(field.name)}
-                  onUpdate={(updates) => updateMapping(field.name, updates)}
+                  onUpdate={(updates) => updateMapping(field.name, { ...updates, xmlPath: field.xmlPath })}
                   isJsonMode={isJsonMode}
                   parsedAttributes={parsedAttributes}
                   smartMode={smartMode}

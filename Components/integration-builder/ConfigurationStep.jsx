@@ -6,29 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowRight, Info, Users, ChevronDown, ChevronRight, CheckCircle2, Search } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { WORKDAY_SERVICES } from '@/config/workdayServices';
 
-// Web Services organized by category
+// Transform WORKDAY_SERVICES into the UI format
 const WEB_SERVICES = [
   {
     id: "staffing",
     name: "Staffing",
-    version: "v44.2",
+    version: "v45.0", // Updated to v45.0 to reflect new services
     description: "Manage positions, workers, and organizational assignments",
     icon: Users,
-    operations: [
-      {
-        value: "Create_Position",
-        label: "Create Position",
-        description: "Create new positions in your organizational structure"
-      },
-      {
-        value: "Contract_Contingent_Worker",
-        label: "Contract Contingent Worker",
-        description: "Contract contingent workers for temporary or project-based work"
-      }
-    ]
+    operations: WORKDAY_SERVICES.map(service => ({
+      value: service.value,
+      label: service.label,
+      description: service.description,
+      version: service.version,
+      fieldConfig: service.fieldConfig,
+      operationName: service.operationName
+    }))
   }
-  // Future services will be added here: HCM, Recruiting, Compensation, etc.
+  // Future service categories will be added here: HCM, Recruiting, Compensation, etc.
 ];
 
 export default function ConfigurationStep({ data, updateData, nextStep }) {

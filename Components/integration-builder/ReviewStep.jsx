@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Check, Loader2, Copy, ExternalLink, Code } from "lucide-react";
 import { Integration } from "@/entities/Integration";
+import { WorkdayCredential } from "@/entities/WorkdayCredential";
 import { generateCreatePositionXML, generatePostmanInstructions } from "@/utils/xmlGenerator";
 
 export default function ReviewStep({ data, prevStep, onSave }) {
@@ -180,6 +181,20 @@ export default function ReviewStep({ data, prevStep, onSave }) {
 function XMLPreview({ data }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [credential, setCredential] = useState(null);
+
+  // Fetch active credential for version information
+  useEffect(() => {
+    const fetchCredential = async () => {
+      try {
+        const activeCredential = await WorkdayCredential.getActive();
+        setCredential(activeCredential);
+      } catch (error) {
+        console.error('Error fetching credential:', error);
+      }
+    };
+    fetchCredential();
+  }, []);
 
   // Merge file data (first row) with global attributes for complete XML generation
   const combinedData = { ...(data.sample_row_data || {}) };
@@ -201,8 +216,8 @@ function XMLPreview({ data }) {
     });
   }
 
-  const generatedXML = generateCreatePositionXML(data, combinedData);
-  const postmanInstructions = generatePostmanInstructions();
+  const generatedXML = generateCreatePositionXML(data, combinedData, credential);
+  const postmanInstructions = generatePostmanInstructions(credential);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(generatedXML);
@@ -219,7 +234,14 @@ function XMLPreview({ data }) {
         <div className="flex items-center gap-3">
           <Code className="w-5 h-5 text-blue-600" />
           <div className="text-left">
-            <h3 className="font-semibold text-gray-900">SOAP XML for Postman Testing</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-gray-900">SOAP XML for Postman Testing</h3>
+              {credential && (
+                <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                  {credential.webservice_version}
+                </Badge>
+              )}
+            </div>
             <p className="text-sm text-gray-600">Ready to execute - populated with actual values from your data</p>
           </div>
         </div>

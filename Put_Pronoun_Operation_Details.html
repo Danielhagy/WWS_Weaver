@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:wd="urn:com.workday/bsvc"
+      xmlns:nyw="urn:com.netyourwork/aod"
+      xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xmlns:functx="http://www.functx.com">
+   <head>
+      <title>Put_Pronoun Operation Details</title>
+      <link rel="stylesheet"
+            href="../../public/stylesheets/ws_doc.css"
+            type="text/css"/>
+      <link rel="shortcut icon"
+            href="../../public/images/workday.ico"
+            type="image/x-icon"/>
+   </head>
+   <body>
+      <div>&nbsp;</div>
+      <div>
+         <a name="top">&nbsp;</a>
+         <a href="../../index.html">Service Directory</a>&nbsp;&gt;&nbsp;<a href="../../versions/v45.0/index.html">v45.0</a>&nbsp;&gt;&nbsp;<a href="Human_Resources.html">Human_Resources</a>&nbsp;&gt;&nbsp;Put_Pronoun</div>
+      <div>&nbsp;</div>
+      <h3 class="ws-title">Operation: Put_Pronoun</h3>
+      <p>Creates a new Pronoun (or updates an existing Pronoun) with the information supplies in the request.</p>
+      <br/>
+      <p>
+                            Contextual Security: Yes</p>
+      <br/>
+      <p>@ - A parameter name with this symbol denotes an XML attribute within the document instead of an XML element. </p>
+      <br/>
+      <h4 class="ws-title">Contents</h4>
+      <div>
+         <ul>
+            <li>
+               <a href="#webservices">Web Service</a>
+            </li>
+            <li>
+               <a href="#Request">Request</a>
+            </li>
+            <li>
+               <a href="#Response">Response</a>
+            </li>
+            <li>
+               <a href="#elements">Elements</a>
+            </li>
+         </ul>
+         <a name="webservice">&nbsp;</a>
+         <h4 class="ws-title"> Web Service </h4>
+         <ul>
+            <li>
+               <a href="Human_Resources.html">Human_Resources (v45.0) </a>
+               <span class="xml-link">
+                  <a href="Human_Resources.wsdl"
+                     onclick="window.open('Human_Resources.wsdl', 'WSDL');return false;">
+                     <img src="../../public/images/wsdl.gif" title="wsdl" alt="WSDL"/>
+                  </a>
+               </span>
+               <span class="xml-link">
+                  <a href="Human_Resources.xsd"
+                     onclick="window.open('Human_Resources.xsd', 'WSDL');return false;">
+                     <img src="../../public/images/xsd.gif" title="schema" alt="Schema"/>
+                  </a>
+               </span>
+            </li>
+         </ul>
+         <a name="Request">&nbsp;</a>
+         <h4 class="ws-title">Request</h4>
+         <ul>
+            <li> Element: <a href="#Put_Pronoun_RequestType">Put_Pronoun_Request</a>
+               <span class="xml-link">
+                  <a href="samples/Put_Pronoun_Request.xml"
+                     onclick="window.open('samples/Put_Pronoun_Request.xml', 'XML');return false;">
+                     <img src="../../public/images/xml.gif" title="sample" alt="Sample"/>
+                  </a>
+               </span>
+            </li>
+         </ul>
+         <a name="Response">&nbsp;</a>
+         <h4 class="ws-title">Response</h4>
+         <ul>
+            <li> Element: <a href="#Put_Pronoun_ResponseType">Put_Pronoun_Response</a>
+               <span class="xml-link">
+                  <a href="samples/Put_Pronoun_Response.xml"
+                     onclick="window.open('samples/Put_Pronoun_Response.xml', 'XML');return false;">
+                     <img src="../../public/images/xml.gif" title="sample" alt="Sample"/>
+                  </a>
+               </span>
+            </li>
+         </ul>
+         <a name="elements">&nbsp;</a>
+         <h4 class="ws-title"> Element(s) </h4>
+      </div>
+      <table>
+         <tr>
+            <td>
+               <a name="Put_Pronoun_RequestType">&nbsp;</a>
+               <h4 class="ws-title"> Request Element: Put_Pronoun_Request</h4>
+               <div>The request to edit pronoun data for a worker.</div>
+               <div>&nbsp;</div>
+               <div>
+                  <table class="typetable" cellspacing="0" cellpadding="0" width="100%">
+                     <tr>
+                        <th>Parameter name</th>
+                        <th>Type/Value</th>
+                        <th>Cardinality</th>
+                        <th>Description</th>
+                        <th>Validations</th>
+                     </tr>
+                     <tr>
+                        <td>@version</td>
+                        <td>string</td>
+                        <td>[0..1]</td>
+                        <td>Web Service version</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                     <tr class="typetable">
+                        <td> @Add_Only&nbsp;</td>
+                        <td>boolean&nbsp;</td>
+                        <td>[0..1]&nbsp;</td>
+                        <td>Add Only flag&nbsp;</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                     <tr class="typetable">
+                        <td>Pronoun_Reference&nbsp;</td>
+                        <td>
+                           <a href="#PronounObjectType">PronounObject</a>&nbsp;</td>
+                        <td>[0..1]&nbsp;</td>
+                        <td>Reference to the Pronoun of the person.&nbsp;</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                     <tr class="typetable">
+                        <td>Pronoun_Data&nbsp;</td>
+                        <td>
+                           <a href="#Pronoun_DataType">Pronoun_Data</a>&nbsp;</td>
+                        <td>[1..1]&nbsp;</td>
+                        <td>The pronoun data for a worker.&nbsp;</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                  </table>
+                  <table class="typetable" cellspacing="0" cellpadding="0" width="100%">
+                     <tr>
+                        <td>
+                           <table class="typetable" width="100%" cellspacing="0" cellpadding="0">
+                              <tr>
+                                 <th>Validation</th>
+                                 <th>Description</th>
+                              </tr>
+                              <tr>
+                                 <td>The web service is set to add only, but the Pronoun already exists.&nbsp;</td>
+                                 <td>&nbsp;</td>
+                              </tr>
+                           </table>
+                        </td>
+                     </tr>
+                  </table>
+               </div>
+            </td>
+         </tr>
+         <tr class="noborder" style="noborder">
+            <td class="noborder" style="noborder;text-align: right;">
+               <span class="xml-link">
+                  <a href="#top">top</a>
+               </span>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <a name="Put_Pronoun_ResponseType">&nbsp;</a>
+               <h4 class="ws-title"> Response
+                Element: Put_Pronoun_Response</h4>
+               <div>The response to the pronoun put request.</div>
+               <div>&nbsp;</div>
+               <div>
+                  <table class="typetable" cellspacing="0" cellpadding="0" width="100%">
+                     <tr>
+                        <th>Parameter name</th>
+                        <th>Type/Value</th>
+                        <th>Cardinality</th>
+                        <th>Description</th>
+                        <th>Validations</th>
+                     </tr>
+                     <tr>
+                        <td>@version</td>
+                        <td>string</td>
+                        <td>[0..1]</td>
+                        <td>Web Service version</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                     <tr class="typetable">
+                        <td>Pronoun_Reference&nbsp;</td>
+                        <td>
+                           <a href="#PronounObjectType">PronounObject</a>&nbsp;</td>
+                        <td>[0..1]&nbsp;</td>
+                        <td>Reference to the Pronoun of the person.&nbsp;</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                  </table>
+               </div>
+            </td>
+         </tr>
+         <tr class="noborder" style="noborder">
+            <td class="noborder" style="noborder;text-align: right;">
+               <span class="xml-link">
+                  <a href="#top">top</a>
+               </span>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <a name="PronounObjectType">&nbsp;</a>
+               <h4 class="ws-title">PronounObject</h4> part of: <a href="#Put_Pronoun_RequestType">Put_Pronoun_Request,</a>
+               <a href="#Put_Pronoun_ResponseType">Put_Pronoun_Response</a>
+               <div>&nbsp;</div>
+               <div>
+                  <table class="typetable" cellspacing="0" cellpadding="0" width="100%">
+                     <tr>
+                        <th>Parameter name</th>
+                        <th>Type/Value</th>
+                        <th>Cardinality</th>
+                        <th>Description</th>
+                        <th>Validations</th>
+                     </tr>
+                     <tr class="typetable">
+                        <td> @Descriptor&nbsp;</td>
+                        <td>string&nbsp;</td>
+                        <td>[0..1]&nbsp;</td>
+                        <td>Display information used to describe an instance of an object. This 'optional' information is for outbound descriptive purposes only and is not processed on inbound Workday Web Services requests.&nbsp;</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                     <tr class="typetable">
+                        <td>ID&nbsp;</td>
+                        <td>
+                           <a href="#PronounObjectIDType">PronounObjectID</a>&nbsp;</td>
+                        <td>[0..*]&nbsp;</td>
+                        <td>Contains a unique identifier for an instance of an object.&nbsp;</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                  </table>
+               </div>
+            </td>
+         </tr>
+         <tr class="noborder" style="noborder">
+            <td class="noborder" style="noborder;text-align: right;">
+               <span class="xml-link">
+                  <a href="#top">top</a>
+               </span>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <a name="PronounObjectIDType">&nbsp;</a>
+               <h4 class="ws-title">PronounObjectID</h4> part of: <a href="#PronounObjectType">PronounObject</a>
+               <div>Contains a unique identifier for an instance of an object.</div>
+               <div>&nbsp;</div>
+               <div>
+                  <table class="typetable" cellspacing="0" cellpadding="0" width="100%">
+                     <tr>
+                        <th>Parameter name</th>
+                        <th>Type/Value</th>
+                        <th>Cardinality</th>
+                        <th>Description</th>
+                        <th>Validations</th>
+                     </tr>
+                     <tr class="typetable">
+                        <td>#text&nbsp;</td>
+                        <td>string&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                     <tr class="typetable">
+                        <td> @type&nbsp;</td>
+                        <td>WID,  Pronoun_ID&nbsp;</td>
+                        <td>[1..1]&nbsp;</td>
+                        <td>The unique identifier type. Each "ID" for an instance of an object contains a type and a value. A single instance of an object can have multiple "ID" but only a single "ID" per "type".  Some "types" require a reference to a parent instance.&nbsp;</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                  </table>
+               </div>
+            </td>
+         </tr>
+         <tr class="noborder" style="noborder">
+            <td class="noborder" style="noborder;text-align: right;">
+               <span class="xml-link">
+                  <a href="#top">top</a>
+               </span>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <a name="Pronoun_DataType">&nbsp;</a>
+               <h4 class="ws-title">Pronoun_Data</h4> part of: <a href="#Put_Pronoun_RequestType">Put_Pronoun_Request</a>
+               <div>The pronoun data for a worker.</div>
+               <div>&nbsp;</div>
+               <div>
+                  <table class="typetable" cellspacing="0" cellpadding="0" width="100%">
+                     <tr>
+                        <th>Parameter name</th>
+                        <th>Type/Value</th>
+                        <th>Cardinality</th>
+                        <th>Description</th>
+                        <th>Validations</th>
+                     </tr>
+                     <tr class="typetable">
+                        <td>ID&nbsp;</td>
+                        <td>string&nbsp;</td>
+                        <td>[0..1]&nbsp;</td>
+                        <td>The pronoun ID.&nbsp;</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                     <tr class="typetable">
+                        <td>Order&nbsp;</td>
+                        <td>string (6) &nbsp;</td>
+                        <td>[1..1]&nbsp;</td>
+                        <td>The display order for the pronoun value.&nbsp;</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                     <tr class="typetable">
+                        <td>Pronoun_Name&nbsp;</td>
+                        <td>string&nbsp;</td>
+                        <td>[1..1]&nbsp;</td>
+                        <td>The pronoun for a worker.&nbsp;</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                     <tr class="typetable">
+                        <td>Pronoun_Code&nbsp;</td>
+                        <td>string&nbsp;</td>
+                        <td>[0..1]&nbsp;</td>
+                        <td>The pronoun code.&nbsp;</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                     <tr class="typetable">
+                        <td>Pronoun_Description&nbsp;</td>
+                        <td>string&nbsp;</td>
+                        <td>[0..1]&nbsp;</td>
+                        <td>The pronoun description.&nbsp;</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                     <tr class="typetable">
+                        <td>Pronoun_Inactive&nbsp;</td>
+                        <td>boolean&nbsp;</td>
+                        <td>[0..1]&nbsp;</td>
+                        <td>The inactive flag for pronoun.&nbsp;</td>
+                        <td>&nbsp;</td>
+                     </tr>
+                  </table>
+               </div>
+            </td>
+         </tr>
+         <tr class="noborder" style="noborder">
+            <td class="noborder" style="noborder;text-align: right;">
+               <span class="xml-link">
+                  <a href="#top">top</a>
+               </span>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <a name="PronounReferenceEnumeration">&nbsp;</a>
+               <h4 class="ws-title">PronounReferenceEnumeration</h4> part of: <a href="#PronounObjectIDType">PronounObjectID</a>
+               <div>
+                  <table class="typetable" cellspacing="0" cellpadding="0" width="100%">
+                     <tr>
+                        <th>Base Type</th>
+                     </tr>
+                     <tr>
+                        <td>string</td>
+                     </tr>
+                  </table>
+               </div>
+            </td>
+         </tr>
+         <tr class="noborder" style="noborder">
+            <td class="noborder" style="noborder;text-align: right;">
+               <span class="xml-link">
+                  <a href="#top">top</a>
+               </span>
+            </td>
+         </tr>
+      </table>
+   </body>
+</html>

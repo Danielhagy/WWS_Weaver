@@ -1,0 +1,259 @@
+{
+  "operation_name": "Put_Pronoun",
+  "description": "Creates a new Pronoun (or updates an existing Pronoun) with the information supplies in the request.",
+  "web_service": "v45.0",
+  "request": {
+    "element_name": "Put_Pronoun",
+    "full_element_name": "Put_Pronoun_RequestType",
+    "description": "The request to edit pronoun data for a worker.",
+    "parameters": [
+      {
+        "name": "version",
+        "original_name": "@version",
+        "type": "string",
+        "is_attribute": true,
+        "is_complex_type": false,
+        "cardinality": "[0..1]",
+        "description": "Web Service version",
+        "required": false
+      },
+      {
+        "name": "Add_Only",
+        "original_name": "@Add_Only",
+        "type": "boolean",
+        "is_attribute": true,
+        "is_complex_type": false,
+        "cardinality": "[0..1]",
+        "description": "Add Only flag",
+        "required": false
+      },
+      {
+        "name": "Pronoun_Reference",
+        "original_name": "Pronoun_Reference",
+        "type": "PronounObject",
+        "is_attribute": false,
+        "is_complex_type": true,
+        "cardinality": "[0..1]",
+        "description": "Reference to the Pronoun of the person.",
+        "required": false,
+        "complex_type_ref": "PronounObjectType",
+        "nested_structure": {
+          "element_name": "PronounObject",
+          "full_element_name": "PronounObjectType",
+          "description": "",
+          "parameters": [
+            {
+              "name": "Descriptor",
+              "original_name": "@Descriptor",
+              "type": "string",
+              "is_attribute": true,
+              "is_complex_type": false,
+              "cardinality": "[0..1]",
+              "description": "Display information used to describe an instance of an object. This 'optional' information is for outbound descriptive purposes only and is not processed on inbound Workday Web Services requests.",
+              "required": false
+            },
+            {
+              "name": "ID",
+              "original_name": "ID",
+              "type": "PronounObjectID",
+              "is_attribute": false,
+              "is_complex_type": true,
+              "cardinality": "[0..*]",
+              "description": "Contains a unique identifier for an instance of an object.",
+              "required": false,
+              "complex_type_ref": "PronounObjectIDType",
+              "nested_structure": {
+                "element_name": "PronounObjectID",
+                "full_element_name": "PronounObjectIDType",
+                "description": "",
+                "parameters": [
+                  {
+                    "name": "#text",
+                    "original_name": "#text",
+                    "type": "string",
+                    "is_attribute": false,
+                    "is_complex_type": false,
+                    "cardinality": "",
+                    "description": "",
+                    "required": false
+                  },
+                  {
+                    "name": "type",
+                    "original_name": "@type",
+                    "type": "WID,  Pronoun_ID",
+                    "is_attribute": true,
+                    "is_complex_type": false,
+                    "cardinality": "[1..1]",
+                    "description": "The unique identifier type. Each \"ID\" for an instance of an object contains a type and a value. A single instance of an object can have multiple \"ID\" but only a single \"ID\" per \"type\".  Some \"types\" require a reference to a parent instance.",
+                    "required": true
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "Pronoun_Data",
+        "original_name": "Pronoun_Data",
+        "type": "Pronoun_Data",
+        "is_attribute": false,
+        "is_complex_type": true,
+        "cardinality": "[1..1]",
+        "description": "The pronoun data for a worker.",
+        "required": true,
+        "complex_type_ref": "Pronoun_DataType",
+        "nested_structure": {
+          "element_name": "Pronoun_Data",
+          "full_element_name": "Pronoun_DataType",
+          "description": "",
+          "parameters": [
+            {
+              "name": "ID",
+              "original_name": "ID",
+              "type": "string",
+              "is_attribute": false,
+              "is_complex_type": false,
+              "cardinality": "[0..1]",
+              "description": "The pronoun ID.",
+              "required": false
+            },
+            {
+              "name": "Order",
+              "original_name": "Order",
+              "type": "string (6)",
+              "is_attribute": false,
+              "is_complex_type": false,
+              "cardinality": "[1..1]",
+              "description": "The display order for the pronoun value.",
+              "required": true
+            },
+            {
+              "name": "Pronoun_Name",
+              "original_name": "Pronoun_Name",
+              "type": "string",
+              "is_attribute": false,
+              "is_complex_type": false,
+              "cardinality": "[1..1]",
+              "description": "The pronoun for a worker.",
+              "required": true
+            },
+            {
+              "name": "Pronoun_Code",
+              "original_name": "Pronoun_Code",
+              "type": "string",
+              "is_attribute": false,
+              "is_complex_type": false,
+              "cardinality": "[0..1]",
+              "description": "The pronoun code.",
+              "required": false
+            },
+            {
+              "name": "Pronoun_Description",
+              "original_name": "Pronoun_Description",
+              "type": "string",
+              "is_attribute": false,
+              "is_complex_type": false,
+              "cardinality": "[0..1]",
+              "description": "The pronoun description.",
+              "required": false
+            },
+            {
+              "name": "Pronoun_Inactive",
+              "original_name": "Pronoun_Inactive",
+              "type": "boolean",
+              "is_attribute": false,
+              "is_complex_type": false,
+              "cardinality": "[0..1]",
+              "description": "The inactive flag for pronoun.",
+              "required": false
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "response": {
+    "element_name": "Put_Pronoun",
+    "full_element_name": "Put_Pronoun_ResponseType",
+    "description": "The response to the pronoun put request.",
+    "parameters": [
+      {
+        "name": "version",
+        "original_name": "@version",
+        "type": "string",
+        "is_attribute": true,
+        "is_complex_type": false,
+        "cardinality": "[0..1]",
+        "description": "Web Service version",
+        "required": false
+      },
+      {
+        "name": "Pronoun_Reference",
+        "original_name": "Pronoun_Reference",
+        "type": "PronounObject",
+        "is_attribute": false,
+        "is_complex_type": true,
+        "cardinality": "[0..1]",
+        "description": "Reference to the Pronoun of the person.",
+        "required": false,
+        "complex_type_ref": "PronounObjectType",
+        "nested_structure": {
+          "element_name": "PronounObject",
+          "full_element_name": "PronounObjectType",
+          "description": "",
+          "parameters": [
+            {
+              "name": "Descriptor",
+              "original_name": "@Descriptor",
+              "type": "string",
+              "is_attribute": true,
+              "is_complex_type": false,
+              "cardinality": "[0..1]",
+              "description": "Display information used to describe an instance of an object. This 'optional' information is for outbound descriptive purposes only and is not processed on inbound Workday Web Services requests.",
+              "required": false
+            },
+            {
+              "name": "ID",
+              "original_name": "ID",
+              "type": "PronounObjectID",
+              "is_attribute": false,
+              "is_complex_type": true,
+              "cardinality": "[0..*]",
+              "description": "Contains a unique identifier for an instance of an object.",
+              "required": false,
+              "complex_type_ref": "PronounObjectIDType",
+              "nested_structure": {
+                "element_name": "PronounObjectID",
+                "full_element_name": "PronounObjectIDType",
+                "description": "",
+                "parameters": [
+                  {
+                    "name": "#text",
+                    "original_name": "#text",
+                    "type": "string",
+                    "is_attribute": false,
+                    "is_complex_type": false,
+                    "cardinality": "",
+                    "description": "",
+                    "required": false
+                  },
+                  {
+                    "name": "type",
+                    "original_name": "@type",
+                    "type": "WID,  Pronoun_ID",
+                    "is_attribute": true,
+                    "is_complex_type": false,
+                    "cardinality": "[1..1]",
+                    "description": "The unique identifier type. Each \"ID\" for an instance of an object contains a type and a value. A single instance of an object can have multiple \"ID\" but only a single \"ID\" per \"type\".  Some \"types\" require a reference to a parent instance.",
+                    "required": true
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
