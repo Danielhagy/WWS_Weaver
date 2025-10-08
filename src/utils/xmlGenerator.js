@@ -56,13 +56,26 @@ function getValue(mapping, sampleData) {
  * Build mapped fields object from field mappings
  */
 function buildMappedFields(field_mappings, sampleData) {
+  console.log('[buildMappedFields] ===== START =====');
+  console.log('[buildMappedFields] Processing field mappings, count:', field_mappings?.length);
+  console.log('[buildMappedFields] Sample of field_mappings:', field_mappings?.slice(0, 3).map(m => ({
+    target_field: m.target_field,
+    xmlPath: m.xmlPath,
+    source_type: m.source_type
+  })));
+
   const mappedFields = {};
   const mappedTypes = {};
 
   field_mappings.forEach(mapping => {
     if (mapping.source_type !== 'unmapped') {
-      // Handle xmlPath from nested fields (choice groups)
-      const fieldKey = mapping.xmlPath || mapping.target_field;
+      // Use xmlPath if available, otherwise skip (don't use target_field with spaces)
+      const fieldKey = mapping.xmlPath;
+      if (!fieldKey) {
+        console.warn(`[buildMappedFields] ⚠️ SKIPPING mapping without xmlPath: ${mapping.target_field}`);
+        return;
+      }
+      console.log(`[buildMappedFields] ✅ Processing mapping: ${mapping.target_field} -> ${fieldKey}`);
       const value = getValue(mapping, sampleData);
 
       console.log(`[buildMappedFields] Field: ${fieldKey}`);
@@ -76,6 +89,41 @@ function buildMappedFields(field_mappings, sampleData) {
       if (mapping.type_value) {
         mappedTypes[fieldKey] = mapping.type_value;
         console.log(`[buildMappedFields]   - stored type: ${mapping.type_value}`);
+      } else if (fieldKey && fieldKey.includes('_Reference.ID')) {
+        // Auto-infer type for Reference ID fields without explicit type_value
+        const refMatch = fieldKey.match(/([A-Z][A-Za-z_]+)_Reference\.ID/);
+        if (refMatch) {
+          const refType = refMatch[1];
+          // Common reference type mappings
+          const typeMap = {
+            'Supervisory_Organization': 'Organization_Reference_ID',
+            'Organization': 'Organization_Reference_ID',
+            'Location': 'Location_ID',
+            'Position': 'Position_ID',
+            'Job_Requisition': 'Job_Requisition_ID',
+            'Worker_Type': 'Worker_Type_ID',
+            'Time_Type': 'Position_Time_Type_ID',
+            'Position_Time_Type': 'Position_Time_Type_ID',
+            'Position_Worker_Type': 'Employee_Type_ID',
+            'Job_Profile': 'Job_Profile_ID',
+            'Job_Family': 'Job_Family_ID',
+            'Difficulty_to_Fill': 'Difficulty_to_Fill_ID',
+            'Country': 'ISO_3166-1_Alpha-2_Code',
+            'Country_Region': 'Country_Region_ID',
+            'Contract_Worker_Type': 'Contingent_Worker_Type_ID',
+            'Contract_Worker_Reason': 'General_Event_Subcategory_ID',
+            'Position_Request_Reason': 'General_Event_Subcategory_ID',
+            'Contingent_Worker': 'Contingent_Worker_ID',
+            'Primary_Reason': 'Termination_Reason_ID',
+            'Secondary_Reason': 'Termination_Reason_ID',
+            'Applicant': 'Applicant_ID',
+            'Former_Worker': 'Former_Worker_ID',
+            'Student': 'Student_ID'
+          };
+          const inferredType = typeMap[refType] || `${refType}_ID`;
+          mappedTypes[fieldKey] = inferredType;
+          console.log(`[buildMappedFields]   - auto-inferred type: ${inferredType}`);
+        }
       }
     }
   });
@@ -209,16 +257,11 @@ function generateContractContingentWorkerSOAP(data, sampleData, credential, serv
     ? `\n        <bsvc:Contract_Start_Date>${escapeXml(startDate)}</bsvc:Contract_Start_Date>`
     : `\n        <!-- Contract_Start_Date REQUIRED but not mapped -->`;
 
+  // Note: Authentication headers are added by the backend based on credential type
+  // Do not include wsse:Security here - it will be added server-side
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:bsvc="urn:com.workday/bsvc">
-  <soapenv:Header>
-    <wsse:Security soapenv:mustUnderstand="1" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
-      <wsse:UsernameToken>
-        <wsse:Username>{{ISU_USERNAME}}</wsse:Username>
-        <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">{{ISU_PASSWORD}}</wsse:Password>
-      </wsse:UsernameToken>
-    </wsse:Security>
-  </soapenv:Header>
+  <soapenv:Header />
   <soapenv:Body>
     <bsvc:Contract_Contingent_Worker_Request bsvc:version="${version}">
       ${generateBusinessProcessParameters(mappedFields)}
@@ -589,16 +632,11 @@ function generateCreatePositionSOAP(data, sampleData, credential, service) {
   console.log('[XML Generator] Final mapped fields:', mappedFields);
   console.log('[XML Generator] Final mapped types:', mappedTypes);
 
+  // Note: Authentication headers are added by the backend based on credential type
+  // Do not include wsse:Security here - it will be added server-side
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:bsvc="urn:com.workday/bsvc">
-  <soapenv:Header>
-    <wsse:Security soapenv:mustUnderstand="1" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
-      <wsse:UsernameToken>
-        <wsse:Username>{{ISU_USERNAME}}</wsse:Username>
-        <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">{{ISU_PASSWORD}}</wsse:Password>
-      </wsse:UsernameToken>
-    </wsse:Security>
-  </soapenv:Header>
+  <soapenv:Header />
   <soapenv:Body>
     <bsvc:Create_Position_Request bsvc:version="${version}">
       ${generateBusinessProcessParameters(mappedFields)}
@@ -674,16 +712,11 @@ function generateEndContingentWorkerContractSOAP(data, sampleData, credential, s
     ? `\n        <bsvc:Contract_End_Date>${escapeXml(contractEndDate)}</bsvc:Contract_End_Date>`
     : `\n        <!-- Contract_End_Date REQUIRED but not mapped -->`;
 
+  // Note: Authentication headers are added by the backend based on credential type
+  // Do not include wsse:Security here - it will be added server-side
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:bsvc="urn:com.workday/bsvc">
-  <soapenv:Header>
-    <wsse:Security soapenv:mustUnderstand="1" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
-      <wsse:UsernameToken>
-        <wsse:Username>{{ISU_USERNAME}}</wsse:Username>
-        <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">{{ISU_PASSWORD}}</wsse:Password>
-      </wsse:UsernameToken>
-    </wsse:Security>
-  </soapenv:Header>
+  <soapenv:Header />
   <soapenv:Body>
     <bsvc:End_Contingent_Worker_Contract_Request bsvc:version="${version}">
       ${generateBusinessProcessParameters(mappedFields)}
@@ -748,17 +781,23 @@ function generateBusinessProcessParameters(fields) {
   let xml = '<bsvc:Business_Process_Parameters>';
 
   // Auto Complete - default to true if not specified
-  const autoComplete = fields['Auto Complete'] !== undefined ? fields['Auto Complete'] : 'true';
+  // Use xmlPath format for field lookup
+  const autoComplete = fields['Business_Process_Parameters.Auto_Complete'] !== undefined
+    ? fields['Business_Process_Parameters.Auto_Complete']
+    : 'true';
   xml += `\n        <bsvc:Auto_Complete>${escapeXml(autoComplete)}</bsvc:Auto_Complete>`;
 
   // Run Now - default to true if not specified
-  const runNow = fields['Run Now'] !== undefined ? fields['Run Now'] : 'true';
+  const runNow = fields['Business_Process_Parameters.Run_Now'] !== undefined
+    ? fields['Business_Process_Parameters.Run_Now']
+    : 'true';
   xml += `\n        <bsvc:Run_Now>${escapeXml(runNow)}</bsvc:Run_Now>`;
 
   // Comment - optional
-  if (fields.Comment) {
+  const comment = fields['Business_Process_Parameters.Comment_Data.Comment'];
+  if (comment) {
     xml += `\n        <bsvc:Comment_Data>`;
-    xml += `\n          <bsvc:Comment>${escapeXml(fields.Comment)}</bsvc:Comment>`;
+    xml += `\n          <bsvc:Comment>${escapeXml(comment)}</bsvc:Comment>`;
     xml += `\n        </bsvc:Comment_Data>`;
   }
 
@@ -899,16 +938,11 @@ function generatePositionRequestReason(fields, types) {
  */
 function generateGenericXML(data, sampleData, credential) {
   const version = credential?.webservice_version || 'v45.0';
+  // Note: Authentication headers are added by the backend based on credential type
+  // Do not include wsse:Security here - it will be added server-side
   return `<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:bsvc="urn:com.workday/bsvc">
-  <soapenv:Header>
-    <wsse:Security soapenv:mustUnderstand="1" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
-      <wsse:UsernameToken>
-        <wsse:Username>{{ISU_USERNAME}}</wsse:Username>
-        <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">{{ISU_PASSWORD}}</wsse:Password>
-      </wsse:UsernameToken>
-    </wsse:Security>
-  </soapenv:Header>
+  <soapenv:Header />
   <soapenv:Body>
     <!-- Generic SOAP request - operation-specific XML not available -->
     <!-- Configure operation in workdayServices.js for proper XML generation -->

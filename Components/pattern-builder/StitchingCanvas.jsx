@@ -25,14 +25,119 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
     if (!fieldMappings || fieldMappings.length === 0) return []
 
     return fieldMappings.map(mapping => {
-      // If it's already in the new format, return as-is
+      // Handle snake_case format from database (source_type, source_value, target_field)
+      if (mapping.source_type) {
+        const converted = {
+          // CRITICAL: Use xmlPath as targetField for soapGenerator compatibility
+          targetField: mapping.xmlPath || mapping.target_field || mapping.targetField,
+          // Preserve xmlPath separately for compatibility
+          ...(mapping.xmlPath && { xmlPath: mapping.xmlPath })
+        }
+
+        // Convert source_type to sourceType and map the values
+        if (mapping.source_type === 'hardcoded') {
+          // CRITICAL FIX: Keep as 'hardcoded' for UI compatibility
+          // Will convert to 'static_value' only when calling soapGenerator
+          converted.sourceType = 'hardcoded'  // UI expects 'hardcoded'
+          converted.hardcodedValue = mapping.source_value  // UI uses hardcodedValue
+          converted.transformation = mapping.transformation
+          // For hardcoded values with type
+          if (mapping.type_value) {
+            converted.hardcodedType = mapping.type_value
+          }
+        } else if (mapping.source_type === 'file_column') {
+          converted.sourceType = 'existing_attribute'
+          converted.sourceLocation = 'webhook'
+          converted.sourceField = mapping.source_value
+          converted.transformation = mapping.transformation
+          // For file columns with type, use sourceFieldType
+          if (mapping.type_value) {
+            converted.sourceFieldType = mapping.type_value
+          }
+        } else if (mapping.source_type === 'dynamic_function') {
+          converted.sourceType = 'dynamic_function'
+          converted.dynamicFunction = mapping.source_value
+          converted.transformation = mapping.transformation
+        } else if (mapping.source_type === 'global') {
+          converted.sourceType = 'existing_attribute'
+          converted.sourceLocation = 'global'
+          converted.sourceField = mapping.source_value
+          converted.transformation = mapping.transformation
+          // For global attributes with type, use sourceFieldType
+          if (mapping.type_value) {
+            converted.sourceFieldType = mapping.type_value
+          }
+        } else if (mapping.source_type === 'previous_step') {
+          converted.sourceType = 'previous_step_variable'
+          converted.stepVariable = mapping.source_value
+          converted.transformation = mapping.transformation
+        }
+
+        // Handle auto-inference for Reference ID fields WITHOUT type_value
+        // Only apply if type wasn't already set above
+        if (!mapping.type_value && !converted.hardcodedType && !converted.sourceFieldType) {
+          // If type_value is missing but this is a Reference ID field, infer the default type
+          // This handles legacy integrations that didn't save type_value
+          const xmlPath = mapping.xmlPath || mapping.target_field || ''
+          if (xmlPath.includes('_Reference.ID')) {
+            // Extract the reference type from the path and convert to appropriate type
+            // Examples:
+            // "Supervisory_Organization_Reference.ID" -> "Organization_Reference_ID"
+            // "Location_Reference.ID" -> "Location_ID"
+            // "Worker_Type_Reference.ID" -> "Worker_Type_ID"
+            const refMatch = xmlPath.match(/([A-Z][A-Za-z_]+)_Reference\.ID/)
+            if (refMatch) {
+              let refType = refMatch[1]
+              // Map common reference types to their ID types (matching Workday API specs)
+              const typeMap = {
+                'Supervisory_Organization': 'Organization_Reference_ID',
+                'Location': 'Location_ID',
+                'Worker_Type': 'Worker_Type_ID',
+                'Time_Type': 'Position_Time_Type_ID',  // Workday spec: only WID or Position_Time_Type_ID allowed
+                'Position_Time_Type': 'Position_Time_Type_ID',  // Same - used in Contract Contingent Worker
+                'Position_Worker_Type': 'Contingent_Worker_Type_ID',
+                'Job_Profile': 'Job_Profile_ID',
+                'Default_Weekly_Hours': 'Default_Weekly_Hours_ID'
+              }
+              const inferredType = typeMap[refType] || `${refType}_ID`
+
+              // Set the correct property based on source type
+              if (converted.sourceType === 'hardcoded') {
+                converted.hardcodedType = inferredType  // UI uses hardcodedType
+              } else if (converted.sourceType === 'existing_attribute') {
+                converted.sourceFieldType = inferredType
+              } else if (converted.sourceType === 'dynamic_function') {
+                converted.dynamicFunctionType = inferredType
+              } else if (converted.sourceType === 'previous_step_variable') {
+                converted.stepVariableType = inferredType
+              }
+
+              console.log(`🔧 StitchingCanvas auto-inferred type for ${xmlPath}: ${inferredType}`)
+            }
+          }
+        }
+
+        return converted
+      }
+
+      // If it's already in the new format (camelCase), normalize it
       if (mapping.sourceType) {
+        // Normalize static_value to hardcoded for UI consistency
+        if (mapping.sourceType === 'static_value') {
+          return {
+            ...mapping,
+            sourceType: 'hardcoded',
+            hardcodedValue: mapping.staticValue || mapping.hardcodedValue,
+            hardcodedType: mapping.sourceFieldType || mapping.hardcodedType
+          }
+        }
         return mapping
       }
 
-      // Convert from legacy format
+      // Convert from very old legacy format (target_field, source_field)
       return {
-        targetField: mapping.target_field,
+        targetField: mapping.xmlPath || mapping.target_field,
+        xmlPath: mapping.xmlPath,
         sourceType: 'existing_attribute',
         sourceLocation: 'webhook',
         sourceField: mapping.source_field,
@@ -42,17 +147,27 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
   }
 
   const handleUseExistingStitch = (stitch) => {
-    // Set webhook config from stitch
+    // Set webhook config from stitch - this makes it a webhook trigger
     const newWebhookConfig = {
       type: stitch.parsed_attributes?.length > 0 ? 'json' : 'file',
       columns: stitch.sample_file_headers || [],
+      sampleData: stitch.sample_file_data || [],  // Add sample data rows
       attributes: stitch.parsed_attributes || [],
       fileName: stitch.sample_file_name || stitch.name
     }
     setWebhookConfig(newWebhookConfig)
+    console.log('📦 Webhook config with sample data:', {
+      columns: newWebhookConfig.columns,
+      sampleDataRows: newWebhookConfig.sampleData?.length || 0
+    })
 
     // Create Step 1 with the existing stitch configuration
+    // When using existing stitch from webhook trigger, keep ALL mappings including file mappings
     const convertedMappings = convertLegacyMappings(stitch.field_mappings || [])
+
+    console.log('🎯 Creating step from webhook trigger with existing stitch')
+    console.log('📋 Keeping ALL mappings (webhook trigger):', convertedMappings)
+
     const newStep = {
       id: `step-${Date.now()}`,
       order: 1,
@@ -61,6 +176,8 @@ export default function StitchingCanvas({ steps, setSteps, webhookConfig, setWeb
       stepType: 'existing',
       existingStitchId: stitch.id,
       mappings: convertedMappings,
+      choiceSelections: stitch.choice_selections || {},
+      choiceFieldValues: stitch.choice_field_values || {},
       testResults: null
     }
 

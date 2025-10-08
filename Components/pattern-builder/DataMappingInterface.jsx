@@ -53,10 +53,43 @@ const DYNAMIC_FUNCTIONS = [
 ];
 
 export default function DataMappingInterface({ step, previousSteps, onMappingChange, webhookConfig }) {
+  console.log('🔍 DataMappingInterface received step:', step)
+  console.log('🔍 step.webService:', step.webService)
+  console.log('🔍 step.mappings:', step.mappings)
+  console.log('🔍 step.choiceSelections:', step.choiceSelections)
+
   const [mappings, setMappings] = useState(step.mappings || [])
   const [choiceSelections, setChoiceSelections] = useState(step.choiceSelections || {})
   const [choiceFieldValues, setChoiceFieldValues] = useState(step.choiceFieldValues || {})
   const [choiceFieldErrors, setChoiceFieldErrors] = useState({})
+
+  // Sync state when step prop changes
+  React.useEffect(() => {
+    console.log('🔄 DataMappingInterface: Step prop changed, syncing state')
+    console.log('🔄 New step.mappings:', step.mappings)
+    console.log('🔄 New step.choiceSelections:', step.choiceSelections)
+    console.log('🔄 New step.choiceFieldValues:', step.choiceFieldValues)
+
+    // Debug: Log each mapping in detail
+    if (step.mappings && step.mappings.length > 0) {
+      step.mappings.forEach((m, idx) => {
+        console.log(`📊 DataMappingInterface received mapping ${idx}:`, {
+          targetField: m.targetField,
+          sourceType: m.sourceType,
+          sourceField: m.sourceField,
+          sourceFieldType: m.sourceFieldType,
+          hardcodedValue: m.hardcodedValue,
+          hardcodedType: m.hardcodedType,
+          sourceLocation: m.sourceLocation,
+          xmlPath: m.xmlPath
+        })
+      })
+    }
+
+    setMappings(step.mappings || [])
+    setChoiceSelections(step.choiceSelections || {})
+    setChoiceFieldValues(step.choiceFieldValues || {})
+  }, [step.mappings, step.choiceSelections, step.choiceFieldValues])
 
   // Initialize expanded categories based on web service
   const getInitialExpandedCategories = () => {
@@ -120,16 +153,45 @@ export default function DataMappingInterface({ step, previousSteps, onMappingCha
     }))
   }
 
-  const getMappingForField = (fieldName) => {
-    return mappings.find(m => m.targetField === fieldName)
+  const getMappingForField = (field) => {
+    // Try to match by name first, then fall back to xmlPath matching
+    const fieldName = typeof field === 'string' ? field : field.name
+    const fieldXmlPath = typeof field === 'object' ? field.xmlPath : null
+
+    const mapping = mappings.find(m => {
+      // First try exact name match
+      if (m.targetField === fieldName) return true
+
+      // If field has xmlPath, also try xmlPath matching
+      if (fieldXmlPath && m.xmlPath === fieldXmlPath) return true
+
+      return false
+    })
+
+    console.log(`🔍 getMappingForField called for ${fieldName}:`, {
+      found: !!mapping,
+      mapping: mapping,
+      fieldXmlPath: fieldXmlPath
+    })
+
+    return mapping
   }
 
   const updateMapping = (fieldName, updates) => {
     const newMappings = [...mappings];
-    const existingIndex = newMappings.findIndex(m => m.targetField === fieldName);
+
+    // Find the field definition to get xmlPath
+    const fieldDef = targetFields.find(f => f.name === fieldName);
+    const xmlPath = fieldDef?.xmlPath || fieldName;
+
+    // Look for existing mapping by either targetField (old format) or xmlPath
+    const existingIndex = newMappings.findIndex(m =>
+      m.targetField === fieldName || m.targetField === xmlPath || m.xmlPath === xmlPath
+    );
 
     const mapping = {
-      targetField: fieldName,
+      targetField: xmlPath,  // CRITICAL: Use xmlPath as targetField for soapGenerator compatibility
+      xmlPath: xmlPath,      // Also preserve xmlPath separately
       ...getMappingForField(fieldName),
       ...updates
     };
@@ -225,29 +287,52 @@ export default function DataMappingInterface({ step, previousSteps, onMappingCha
               </span>
             </div>
             <div className="space-y-2 ml-8">
-              {previousSteps.map((prevStep) => (
-                <div key={prevStep.id} className="space-y-1">
-                  <div className="text-xs font-medium text-muted-foreground">
-                    Step {prevStep.order}: {prevStep.name}
+              {previousSteps.map((prevStep) => {
+                // Check if this step has extracted variables
+                const hasVariables = prevStep.extractedVariables && Object.keys(prevStep.extractedVariables).length > 0
+
+                // Debug logging
+                console.log('📋 Previous step data:', {
+                  stepId: prevStep.id,
+                  stepOrder: prevStep.order,
+                  stepName: prevStep.name,
+                  hasExtractedVariables: hasVariables,
+                  extractedVariables: prevStep.extractedVariables
+                })
+
+                return (
+                  <div key={prevStep.id} className="space-y-1">
+                    <div className="text-xs font-medium text-muted-foreground">
+                      Step {prevStep.order}: {prevStep.name}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {hasVariables ? (
+                        // Display extracted variables from test results
+                        Object.entries(prevStep.extractedVariables).flatMap(([refType, ids]) =>
+                          Object.entries(ids).map(([idType, value]) => {
+                            const variableKey = `${refType}.${idType}`
+                            return (
+                              <Badge
+                                key={variableKey}
+                                variant="outline"
+                                className="text-xs bg-white border-accent-teal/30 text-accent-teal cursor-pointer hover:bg-accent-teal hover:text-white transition-colors"
+                                data-testid={`previous-node-${prevStep.id}-${variableKey}`}
+                                title={`Value: ${value}\nClick to use in field mapping`}
+                              >
+                                {variableKey}
+                              </Badge>
+                            )
+                          })
+                        )
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic">
+                          Test this step to discover output fields
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {prevStep.testResults?.outputFields?.map((field) => (
-                      <Badge
-                        key={field}
-                        variant="outline"
-                        className="text-xs bg-white border-accent-teal/30 text-accent-teal"
-                        data-testid={`previous-node-${prevStep.id}-${field}`}
-                      >
-                        {field}
-                      </Badge>
-                    )) || (
-                      <span className="text-xs text-muted-foreground italic">
-                        Test this step to discover output fields
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </Card>
         )}
@@ -303,7 +388,7 @@ export default function DataMappingInterface({ step, previousSteps, onMappingCha
                   </Badge>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {fields.filter(f => getMappingForField(f.name)).length} mapped
+                  {fields.filter(f => getMappingForField(f)).length} mapped
                 </div>
               </button>
 
@@ -313,7 +398,11 @@ export default function DataMappingInterface({ step, previousSteps, onMappingCha
                     <FieldMappingRow
                       key={field.name}
                       field={field}
-                      mapping={getMappingForField(field.name) || { targetField: field.name, sourceType: 'unmapped' }}
+                      mapping={getMappingForField(field) || {
+                        targetField: field.xmlPath || field.name,  // Use xmlPath instead of name
+                        xmlPath: field.xmlPath,  // Preserve xmlPath
+                        sourceType: 'unmapped'
+                      }}
                       webhookColumns={webhookColumns}
                       previousSteps={previousSteps}
                       dynamicFunctions={DYNAMIC_FUNCTIONS}
@@ -377,7 +466,7 @@ function FieldMappingRow({ field, mapping, webhookColumns, previousSteps, dynami
         </div>
 
         {/* Mapping Type Buttons */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <Button
             type="button"
             size="sm"
@@ -387,6 +476,16 @@ function FieldMappingRow({ field, mapping, webhookColumns, previousSteps, dynami
           >
             <FileUp className="w-3 h-3 mr-1" />
             Existing
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={mapping.sourceType === 'previous_step_variable' ? "default" : "outline"}
+            className={`justify-start text-xs h-auto py-2 ${mapping.sourceType === 'previous_step_variable' ? "bg-accent-teal text-white hover:bg-accent-teal/90" : ""}`}
+            onClick={() => onUpdate({ sourceType: 'previous_step_variable', stepVariable: '' })}
+          >
+            <Zap className="w-3 h-3 mr-1" />
+            Prev Step
           </Button>
           <Button
             type="button"
@@ -633,6 +732,73 @@ function FieldMappingRow({ field, mapping, webhookColumns, previousSteps, dynami
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">
                   Specify the type of ID for the generated value
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Previous Step Variable Configuration */}
+        {mapping.sourceType === 'previous_step_variable' && (
+          <div className="space-y-2 pl-2 border-l-2 border-accent-teal/30">
+            <div>
+              <Label className="text-xs">Variable from Previous Step</Label>
+              <Select
+                value={mapping.stepVariable || ''}
+                onValueChange={(value) => onUpdate({ ...mapping, stepVariable: value })}
+              >
+                <SelectTrigger className="h-8 mt-1">
+                  <SelectValue placeholder="Choose variable..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {previousSteps.flatMap((prevStep) => {
+                    if (!prevStep.extractedVariables) return []
+                    return Object.entries(prevStep.extractedVariables).flatMap(([refType, ids]) =>
+                      Object.entries(ids).map(([idType, value]) => {
+                        const variableKey = `${refType}.${idType}`
+                        return (
+                          <SelectItem key={`${prevStep.id}-${variableKey}`} value={variableKey}>
+                            Step {prevStep.order}: {variableKey}
+                          </SelectItem>
+                        )
+                      })
+                    )
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+            {mapping.stepVariable && (
+              <Card className="p-2 bg-gradient-to-br from-blue-50 to-white border-blue-200">
+                <p className="text-xs text-muted-foreground">
+                  <strong className="text-blue-900">Variable:</strong>{' '}
+                  <span className="font-mono font-semibold text-blue-700">
+                    {`{{${mapping.stepVariable}}}`}
+                  </span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  This value will be dynamically populated from the previous step's output
+                </p>
+              </Card>
+            )}
+            {/* For text_with_type fields, also show type selector */}
+            {field.type === 'text_with_type' && field.typeOptions && (
+              <div>
+                <Label className="text-xs">ID Type</Label>
+                <Select
+                  value={mapping.stepVariableType || field.defaultType || field.typeOptions[0]}
+                  onValueChange={(value) => onUpdate({ ...mapping, stepVariableType: value })}
+                >
+                  <SelectTrigger className="h-8 mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {field.typeOptions.map((typeOpt) => (
+                      <SelectItem key={typeOpt} value={typeOpt}>{typeOpt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Specify the type of ID for this reference
                 </p>
               </div>
             )}
